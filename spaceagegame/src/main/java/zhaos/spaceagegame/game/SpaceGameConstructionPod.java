@@ -6,7 +6,7 @@ import zhaos.spaceagegame.util.IntPoint;
 /**
  * Created by kodomazer on 9/27/2016.
  */
-public class ConstructionPod {
+public class SpaceGameConstructionPod {
     public IntPoint hexTile;
     public HHexDirection subsection;
 

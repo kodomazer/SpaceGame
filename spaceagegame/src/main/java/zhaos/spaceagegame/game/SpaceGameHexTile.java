@@ -1,17 +1,12 @@
 package zhaos.spaceagegame.game;
 
-import android.widget.RelativeLayout;
-
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.util.FloatPoint;
-import zhaos.spaceagegame.util.Game;
-import zhaos.spaceagegame.util.HexTile;
 import zhaos.spaceagegame.util.IntPoint;
 
 /**
  * Created by kodomazer on 9/26/2016.
  */
-public class GameHexTile {
+public class SpaceGameHexTile {
     IntPoint position;
     SpaceGame parentGame;
 
@@ -21,9 +16,9 @@ public class GameHexTile {
     //any other number if it belongs to a team
     protected int affiliation;
 
-    HexSubsection[] subsections;
+    SpaceGameHexSubsection[] subsections;
 
-    public GameHexTile(SpaceGame parent, IntPoint position){
+    public SpaceGameHexTile(SpaceGame parent, IntPoint position){
         //Have to have a reference to parent
         parentGame = parent;
         //deep copy
@@ -31,14 +26,14 @@ public class GameHexTile {
         //Hexes start off as neutral
         affiliation = 0;
         //Initialize subsections
-        subsections = new HexSubsection[7];
+        subsections = new SpaceGameHexSubsection[7];
         for(int i = 0;i<7;i++){
-            subsections[i] = new HexSubsection(this,HHexDirection.getDirection(i));
+            subsections[i] = new SpaceGameHexSubsection(this,HHexDirection.getDirection(i));
         }
     }
 
 
-    public HexSubsection getSubsection(HHexDirection position){
+    public SpaceGameHexSubsection getSubsection(HHexDirection position){
         if(position==null)return null;
         return subsections[position.i()];
     }
@@ -52,15 +47,15 @@ public class GameHexTile {
         position = newPosition;
     }
 
-    public GameHexTile getNeighbor(HHexDirection dir){
+    public SpaceGameHexTile getNeighbor(HHexDirection dir){
         IntPoint pos = new IntPoint(position);
         dir.translatePoint(pos);
         return parentGame.getTile(pos);
     }
 
-    public GameHexTile[] getNeighbors(){
+    public SpaceGameHexTile[] getNeighbors(){
         //6 neighboring Hexes
-        GameHexTile[] a = new GameHexTile[6];
+        SpaceGameHexTile[] a = new SpaceGameHexTile[6];
         IntPoint current = new IntPoint(getPosition());
         HHexDirection dir = HHexDirection.DownRight;
 
@@ -80,7 +75,7 @@ public class GameHexTile {
         parentGame = parent;
     }
 
-    public HexSubsection[] getSubsections() {
+    public SpaceGameHexSubsection[] getSubsections() {
         return subsections;
     }
 }

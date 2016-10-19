@@ -5,20 +5,20 @@ import zhaos.spaceagegame.util.HHexDirection;
 /**
  * Created by kodomazer on 9/27/2016.
  */
-public class CenterSubsection extends HexSubsection{
+public class SpaceGameCenterSubsection extends SpaceGameHexSubsection {
 
     //Center subsection can hold a SpaceStation, other subsections cannot
     protected SpaceStation station;
 
-    public CenterSubsection(GameHexTile parent) {
+    public SpaceGameCenterSubsection(SpaceGameHexTile parent) {
         super(parent, HHexDirection.CENTER);
         station = new SpaceStation();
     }
 
     @Override
-    public HexSubsection[] getNeighbors() {
+    public SpaceGameHexSubsection[] getNeighbors() {
         //6 subsections adjacent to the center of the hexTile, all of the outer subsections
-        HexSubsection[] a = new HexSubsection[6];
+        SpaceGameHexSubsection[] a = new SpaceGameHexSubsection[6];
         HHexDirection current = HHexDirection.Up;
         do{
             a[current.i()] = parent.getSubsection(current); //get neighbor

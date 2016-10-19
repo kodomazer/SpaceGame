@@ -1,12 +1,14 @@
 package zhaos.spaceagegame.game;
 
 
+import android.graphics.Point;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import zhaos.spaceagegame.ui.GameGUIActivity;
+import zhaos.spaceagegame.ui.SpaceGameActivity;
 import zhaos.spaceagegame.util.HHexDirection;
 import zhaos.spaceagegame.util.IntPoint;
 
@@ -23,7 +25,7 @@ public class SpaceGame{
     }
 
 
-    protected Map<IntPoint,GameHexTile> grid;
+    protected Map<IntPoint,SpaceGameHexTile> grid;
     protected TeamController[] teams;
 
     private int radius;
@@ -31,7 +33,7 @@ public class SpaceGame{
 
     protected Unit activeUnit;
 
-    protected GameGUIActivity view;
+    protected SpaceGameActivity view;
 
 
     /*Game Phases
@@ -71,12 +73,17 @@ public class SpaceGame{
         teams=null;
     }
 
+    //returns the radius of the game
+    public int getRadius(){
+        return radius;
+    }
+
     //returns true if radius is set, returns false if radius has already been set
-    public boolean setSize(int size) {
-        if (size > 0)
+    public boolean setRadius(int radius) {
+        if (radius > 0)
             if (this.radius == -1) {
-                this.radius = size;
-                initializeMap(size);
+                this.radius = radius;
+                initializeMap(radius);
                 return true;
             }
         return false;
@@ -100,11 +107,15 @@ public class SpaceGame{
 
     }
 
-    public GameHexTile getTile(IntPoint position) {
+    public SpaceGameHexTile getTile(IntPoint position) {
         return grid.get(position);
     }
 
-    public Collection<GameHexTile> getTiles(){
+    public SpaceGameHexTile getTile(Point position) {
+        return grid.get(new IntPoint(position.x,position.y));
+    }
+
+    public Collection<SpaceGameHexTile> getTiles(){
         return grid.values();
     }
 
@@ -112,25 +123,25 @@ public class SpaceGame{
         activeUnit = e;
     }
 
-    public HexSubsection[] moves() {
-        ArrayList<HexSubsection> a = new ArrayList<>();
+    public SpaceGameHexSubsection[] moves() {
+        ArrayList<SpaceGameHexSubsection> a = new ArrayList<>();
         int team = activeUnit.getAffiliation();
         int tile;
-        for (HexSubsection s : getTile(activeUnit.getHexTile())//get Tile
+        for (SpaceGameHexSubsection s : getTile(activeUnit.getHexTile())//get Tile
                 .getSubsection(activeUnit.getSubsection())//get subsection
                 .getNeighbors()){
             tile = s.getAffiliation();
             if( tile == team || tile == 0)
                 a.add(s);
         }
-        return (HexSubsection[]) a.toArray();
+        return (SpaceGameHexSubsection[]) a.toArray();
     }
 
-    public HexSubsection[] attacks() {
-        ArrayList<HexSubsection> a = new ArrayList<>();
+    public SpaceGameHexSubsection[] attacks() {
+        ArrayList<SpaceGameHexSubsection> a = new ArrayList<>();
         int team = activeUnit.getAffiliation();
         int tile;
-        for (HexSubsection s : getTile(activeUnit.getHexTile())//get Tile
+        for (SpaceGameHexSubsection s : getTile(activeUnit.getHexTile())//get Tile
                 .getSubsection(activeUnit.getSubsection())//get subsection
                 .getNeighbors()) {
             tile = s.getAffiliation();
@@ -138,18 +149,26 @@ public class SpaceGame{
                 continue;
             a.add(s);
         }
-        return (HexSubsection[]) a.toArray();
+        return (SpaceGameHexSubsection[]) a.toArray();
     }
 
+
+
+
+
+
+    //Phases
     protected void resetPhase(){
-        for(GameHexTile h:grid.values()){
-            for(HexSubsection s : h.getSubsections()){
+        for(SpaceGameHexTile h:grid.values()){
+            for(SpaceGameHexSubsection s : h.getSubsections()){
                 s.resetInfo();
             }
         }
         calculateAreaOfInfluence();
     }
 
+
+    //Auxillary methods for internal use
     private void calculateAreaOfInfluence() {
         for (TeamController t : teams) {
             for (Unit u : t.getUnits()) {
@@ -160,6 +179,8 @@ public class SpaceGame{
         }
     }
 
+
+    //Initialize HHexDirection enum translation methods
     private void initializeDirections() {
         HHexDirection.Up.setTranslate(new IntPoint.translateInterface() {
             @Override
@@ -214,18 +235,26 @@ public class SpaceGame{
         });
     }
 
+    //Initialize map
     private void initializeMap(int radius) {
         grid = new HashMap<>();
         //center is at (radius*2,radius)
         IntPoint current = new IntPoint(radius,radius);
         HHexDirection facing = HHexDirection.DownLeft;
 
+        //Generate map ring by ring, going outward
         for(int i = 1;i<=radius;i++) {
+            //Move up once to move out one ring
             HHexDirection.Up.translatePoint(current);
+            //Go each direction once, switch the direction of travel each loop
             for(int j = 0;j<6;j++,facing = HHexDirection.rotateClockwise(facing))
+                //Translate in the direction a number of times equal to the radius
+                //Radius is equal to side length
                 for(int k = 0;k<i;k++,facing.translatePoint(current))
+                    //Add a new hex tile to the grid
+                    //Deep copy of the Point because the current point will change
                     grid.put(new IntPoint(current),
-                            new GameHexTile(this,current));
+                            new SpaceGameHexTile(this,current));
         }
     }
 

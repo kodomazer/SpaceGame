@@ -8,19 +8,19 @@ import zhaos.spaceagegame.util.HHexDirection;
 /**
  * Created by kodomazer on 9/26/2016.
  */
-public class HexSubsection {
+public class SpaceGameHexSubsection {
     //Tile that the subsection belongs to.
-    protected GameHexTile parent;
+    protected SpaceGameHexTile parent;
 
     //The Part of the tile the subsection is part of
     protected HHexDirection position;
 
     protected Collection<Unit> occupants;
-    protected Collection<ConstructionPod> pods;
+    protected Collection<SpaceGameConstructionPod> pods;
     protected int affiliation;
     protected int[] influenceLevels;
 
-    public HexSubsection(GameHexTile parent,HHexDirection spot){
+    public SpaceGameHexSubsection(SpaceGameHexTile parent, HHexDirection spot){
         occupants = new ArrayList<>();
         pods = new ArrayList<>();
         this.parent = parent;
@@ -38,7 +38,7 @@ public class HexSubsection {
         }
         return false;
     }
-    public boolean moveIn(Unit e,ConstructionPod c){
+    public boolean moveIn(Unit e,SpaceGameConstructionPod c){
         if(e.getAffiliation()==affiliation){
             occupants.add(e);
             pods.add(c);
@@ -51,7 +51,7 @@ public class HexSubsection {
         return occupants.remove(e);
     }
 
-    public boolean moveOut(Unit e,ConstructionPod c){
+    public boolean moveOut(Unit e,SpaceGameConstructionPod c){
         return occupants.remove(e) && pods.remove(c);
     }
 
@@ -67,9 +67,9 @@ public class HexSubsection {
 
 
     //returns neighboring subsections
-    public HexSubsection[] getNeighbors(){
+    public SpaceGameHexSubsection[] getNeighbors(){
         //Four neighbors for a subsection in the outer ring of a Hex
-        HexSubsection[] a = new HexSubsection[4];
+        SpaceGameHexSubsection[] a = new SpaceGameHexSubsection[4];
         //Center subsection of same hexTile
         a[0]=parent.getSubsection(HHexDirection.CENTER);
         //Adjacent in the clockwise direction
@@ -95,7 +95,7 @@ public class HexSubsection {
         if(influence<=influenceLevels[team])
             return;
         influenceLevels[team]=influence;
-        for (HexSubsection s: getNeighbors()) {
+        for (SpaceGameHexSubsection s: getNeighbors()) {
             s.updateInfluence(influence-1,team);
         }
     }

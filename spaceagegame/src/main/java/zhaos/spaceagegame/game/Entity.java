@@ -17,7 +17,7 @@ public abstract class Entity {
     protected int actionPoints;
 
     //The subsection the Entity resides in
-    protected HexSubsection parent;
+    protected SpaceGameHexSubsection parent;
 
 
     public int getAffiliation() {
