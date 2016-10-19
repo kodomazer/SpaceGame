@@ -7,6 +7,22 @@ import android.util.Log;
 import android.widget.RelativeLayout;
 
 import zhaos.spaceagegame.game.SpaceGameLocal;
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.PixelFormat;
+import android.graphics.Point;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.sax.RootElement;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.SurfaceView;
+import android.view.View;
+import android.widget.RelativeLayout;
+
+import zhaos.spaceagegame.game.SpaceGame;
 import zhaos.spaceagegame.game.SpaceGameHexTile;
 
 /**
@@ -45,6 +61,7 @@ public class SpaceGameMapView extends RelativeLayout {
 //                metrics.heightPixels);
         updatePosition();
 
+
     }
 
 
@@ -65,8 +82,8 @@ public class SpaceGameMapView extends RelativeLayout {
                     (int) (hexSize.y * scale));
             Point relativeOffset = new Point((int) (hexOffset.x * scale),
                     (int) (hexOffset.y * scale));
-            for (; current.x < bottomRightGridLocation.x; current.offset(2, 0)) {
-                for (; current.y < bottomRightGridLocation.y; current.offset(0, 2)) {
+            for (; current.x < bottomRightGridLocation.x; current.offset(1, 0)) {
+                for (; current.y < bottomRightGridLocation.y; current.offset(0, 1)) {
                     Log.d(TAG, "updatePosition: current " + current.toString());
                     hex = gameInstance.getTile(current);
                     HexGUI gui = new HexGUI(this,

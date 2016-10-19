@@ -23,14 +23,47 @@ public class SubsectionGUI extends ImageView implements View.OnClickListener{
 
     public SubsectionGUI(SubsectionGroup parentLayout,HHexDirection direction) {
         super(parentLayout.getContext());
+    int direction;
+
+    protected ImageView imageView;
+
+
+    public SubsectionGUI(RelativeLayout parentLayout){
+        super(parentLayout.getContext());
+
+
+    }
+
+    public SubsectionGUI(RelativeLayout parentLayout,
+                         HexGUI parent,
+                         SpaceGameHexSubsection subsection,
+                         IntPoint size,
+                         IntPoint position) {
+        super(parentLayout.getContext());
         this.parentLayout = parentLayout;
         thisSubsection = direction;
 
         setOnClickListener(this);
     }
 
+        imageView = new ImageView(parentLayout.getContext());
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(size.x,size.y);
+        params.leftMargin = position.x;
+        params.topMargin = position.y;
+
     public void setImage(int subsection){
         switch (subsection) {
+
+        imageView.setOnClickListener(this);
+        parentLayout.addView(imageView,params);
+
+
+
+    }
+
+    private void setImage(int i){
+        switch (i) {
+
             case 0:
                 setBackgroundResource(R.mipmap.empty_hex_border_0);
                 break;
@@ -57,7 +90,19 @@ public class SubsectionGUI extends ImageView implements View.OnClickListener{
 
     public void updateDraw(){
 
+    public void setSubsection(int subsection) {
+        direction = subsection;
+        setImage(subsection);
     }
+
+    public void setAttachedHex(HexGUI hex){
+        parentHex = hex;
+        thisSubsection= parentHex.hexTile.getSubsection(HHexDirection.getDirection(direction));
+        setAsMoveable();
+        if(thisSubsection.getAffiliation()==-1)
+            setAsBattle();
+    }
+
 
     public void setAsMoveable() {
         setColorFilter(Color.rgb(100, 255, 100));
