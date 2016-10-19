@@ -17,7 +17,7 @@ public interface Tile {
     FloatPoint getSize();
     void setSize(FloatPoint newSize);
 
-    //returns the resource ID to help the GameGUIActivity program generate the gui
+    //returns the resource ID to help the SpaceGameActivity program generate the gui
     int getResourceID();
 
 
