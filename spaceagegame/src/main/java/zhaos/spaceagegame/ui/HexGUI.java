@@ -1,43 +1,20 @@
 package zhaos.spaceagegame.ui;
 
-import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.Matrix;
-import android.graphics.PixelFormat;
 import android.graphics.Point;
-import android.graphics.drawable.Drawable;
-import android.nfc.Tag;
-import android.support.annotation.NonNull;
 import android.util.Log;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.Matrix;
-import android.graphics.PixelFormat;
-import android.graphics.Point;
-import android.graphics.drawable.Drawable;
-import android.support.annotation.NonNull;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import zhaos.spaceagegame.R;
 import zhaos.spaceagegame.game.SpaceGameHexTile;
-import zhaos.spaceagegame.util.IntPoint;
 
 /**
  * Created by bzhao on 10/4/2016.
  */
 public class HexGUI extends ImageView {
     private final String TAG = "Hex GUI";
-public class HexGUI extends ImageView {
 
     protected SpaceGameHexTile hexTile;
     protected Point position;

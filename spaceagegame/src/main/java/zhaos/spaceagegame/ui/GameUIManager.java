@@ -21,7 +21,7 @@ import zhaos.spaceagegame.util.IntPoint;
  *
  *
  */
-class GameUIManager extends Thread {
+class GameUIManager implements Runnable {
     private String TAG = "UI Manager";
 
 

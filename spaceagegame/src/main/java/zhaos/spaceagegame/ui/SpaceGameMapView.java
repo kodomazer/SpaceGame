@@ -8,21 +8,7 @@ import android.widget.RelativeLayout;
 
 import zhaos.spaceagegame.game.SpaceGameLocal;
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.PixelFormat;
-import android.graphics.Point;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
-import android.sax.RootElement;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.SurfaceView;
-import android.view.View;
-import android.widget.RelativeLayout;
 
-import zhaos.spaceagegame.game.SpaceGame;
 import zhaos.spaceagegame.game.SpaceGameHexTile;
 
 /**
@@ -41,6 +27,10 @@ public class SpaceGameMapView extends RelativeLayout {
     public final Point hexSize = new Point(200, 173);
     public final Point hexOffset = new Point(150, 87);
 
+
+    public SpaceGameMapView(Context context){
+        super(context);
+    }
 
     public SpaceGameMapView(SpaceGameActivity context, SpaceGameLocal game, Point size) {
         super(context);
