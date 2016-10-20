@@ -44,8 +44,33 @@ public enum HHexDirection {
             default:
                 return CENTER;
         }
-
     }
+
+    public static String toString(HHexDirection direction){
+        switch (direction){
+            case Up:
+                return "Up";
+            case Down:
+                return "Down";
+            case UpLeft:
+                return "Up Left";
+            case UpRight:
+                return "Up Right";
+            case DownLeft:
+                return "Down Left";
+            case DownRight:
+                return "Down Right";
+            case CENTER:
+                return "Center";
+            default:
+                return "None";
+        }
+    }
+
+    public static String toString(int direction){
+        return toString(getDirection(direction));
+    }
+
     public static HHexDirection rotateClockwise(HHexDirection cur){
         return getDirection((cur.i()+1)%6);
     }

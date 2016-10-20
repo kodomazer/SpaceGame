@@ -14,6 +14,7 @@ import zhaos.spaceagegame.R;
 import zhaos.spaceagegame.game.SpaceGameLocal;
 import zhaos.spaceagegame.game.SpaceGameHexTile;
 import zhaos.spaceagegame.util.FloatPoint;
+import zhaos.spaceagegame.util.HHexDirection;
 import zhaos.spaceagegame.util.IntPoint;
 
 /**
@@ -109,6 +110,11 @@ class GameUIManager implements Runnable {
                     lastClick.resetActive();
                     lastClick = ((HexGUI) v);
                     lastClick.setActive();
+                    String info;
+                    for(int i = 0;i<7;i++){
+                        info = HHexDirection.toString(i);
+                        infoText[i].setText(info);
+                    }
                 }
             });
             gui.setClickable(false);
