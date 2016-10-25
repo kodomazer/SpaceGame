@@ -2,17 +2,23 @@ package zhaos.spaceagegame.ui;
 
 import android.graphics.Point;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import zhaos.spaceagegame.R;
 import zhaos.spaceagegame.game.SpaceGameLocal;
 import zhaos.spaceagegame.game.SpaceGameHexTile;
+import zhaos.spaceagegame.game.resources.InfoBundle;
+import zhaos.spaceagegame.game.resources.MyBundle;
+import zhaos.spaceagegame.game.resources.Request;
+import zhaos.spaceagegame.game.resources.RequestConstants;
 import zhaos.spaceagegame.util.FloatPoint;
 import zhaos.spaceagegame.util.HHexDirection;
 import zhaos.spaceagegame.util.IntPoint;
@@ -80,19 +86,17 @@ class GameUIManager implements Runnable {
         //Set Game options
         game.setRadius(extras.getInt("EXTRA_BOARD_SIZE",5));
         game.setTeamCount(extras.getInt("EXTRA_TEAM_COUNT",3));
-
+        game.execute();
 
         buildGameView();
     }
 
     private void buildGameView(){
-        IntPoint intPosition;
         Point position;
         FloatPoint pixelPosition;
         HexGUI gui;
         for(SpaceGameHexTile t:game.getTiles()) {
-            intPosition = t.getPosition();
-            position = new Point(intPosition.x,intPosition.y);
+            position = t.getPosition();
             pixelPosition = position(position);
             gui = new HexGUI(mainView,
                     t,
@@ -135,9 +139,26 @@ class GameUIManager implements Runnable {
             public void onClick(View v) {
                 Point clickPoint = getHex(xPosition,yPosition);
                 infoText[0].setText(clickPoint.toString());
-                HexGUI clicked = GUIGrid.get(new Point(clickPoint.x,clickPoint.y));
+                HexGUI clicked = GUIGrid.get(clickPoint);
                 if(clicked !=null){
-                    clicked.performClick();}
+                    clicked.performClick();
+                    MyBundle request = new MyBundle();
+                    request.putInt(RequestConstants.INSTRUCTION,RequestConstants.HEX_INFO);
+                    request.putPoint(RequestConstants.ORIGIN_HEX,clickPoint);
+                    game.doAction(new Request(request, new Request.RequestCallback() {
+                        @Override
+                        public void onComplete(InfoBundle info) {
+                            if(info==null)return;
+                            ArrayList<MyBundle> subsectionList=
+                                    (ArrayList<MyBundle>)
+                                            info.getArrayList(RequestConstants.SUBSECTION_LIST);
+                            for(MyBundle subsectionBundle:subsectionList){
+                                String text = ""+subsectionBundle.getInt(RequestConstants.FACTION_ID);
+                                infoText[subsectionBundle.getInt(RequestConstants.ORIGIN_SUBSECTION)]
+                                        .setText(text);
+                            }
+                        }
+                    }));}
             }
         });
     }

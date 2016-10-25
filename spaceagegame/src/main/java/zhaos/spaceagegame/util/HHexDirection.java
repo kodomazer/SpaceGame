@@ -1,5 +1,7 @@
 package zhaos.spaceagegame.util;
 
+import android.graphics.Point;
+
 /**
  * Created by kodomazer on 9/26/2016.
  */
@@ -21,7 +23,7 @@ public enum HHexDirection {
     public int i(){
         return directionNumber;
     }
-    public void translatePoint(IntPoint i){
+    public void translatePoint(Point i){
         translate.translatePoint(i);
     }
     public void setTranslate(IntPoint.translateInterface i){

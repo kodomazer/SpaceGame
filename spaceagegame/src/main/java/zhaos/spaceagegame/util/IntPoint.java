@@ -1,5 +1,7 @@
 package zhaos.spaceagegame.util;
 
+import android.graphics.Point;
+
 /**
  * Created by kodomazer on 9/19/2016.
  */
@@ -29,7 +31,7 @@ public class IntPoint {
     }
 
     public interface translateInterface{
-        void translatePoint(IntPoint translated);
+        void translatePoint(Point translated);
     }
 
     public String toString(){

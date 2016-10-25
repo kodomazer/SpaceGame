@@ -1,5 +1,7 @@
 package zhaos.spaceagegame.game;
 
+import android.graphics.Point;
+
 import zhaos.spaceagegame.util.HHexDirection;
 import zhaos.spaceagegame.util.IntPoint;
 
@@ -7,7 +9,7 @@ import zhaos.spaceagegame.util.IntPoint;
  * Created by kodomazer on 9/26/2016.
  */
 public class SpaceGameHexTile {
-    IntPoint position;
+    Point position;
     SpaceGameLocal parentGame;
 
     protected int energyCount;
@@ -18,11 +20,11 @@ public class SpaceGameHexTile {
 
     SpaceGameHexSubsection[] subsections;
 
-    public SpaceGameHexTile(SpaceGameLocal parent, IntPoint position){
+    public SpaceGameHexTile(SpaceGameLocal parent, Point position){
         //Have to have a reference to parent
         parentGame = parent;
         //deep copy
-        this.position = new IntPoint(position);
+        this.position = new Point(position);
         //Hexes start off as neutral
         affiliation = 0;
         //Initialize subsections
@@ -39,16 +41,16 @@ public class SpaceGameHexTile {
     }
 
 
-    public IntPoint getPosition() {
+    public Point getPosition() {
         return position;
     }
 
-    public void setPosition(IntPoint newPosition) {
+    public void setPosition(Point newPosition) {
         position = newPosition;
     }
 
     public SpaceGameHexTile getNeighbor(HHexDirection dir){
-        IntPoint pos = new IntPoint(position);
+        Point pos = new Point(position);
         dir.translatePoint(pos);
         return parentGame.getTile(pos);
     }
@@ -56,7 +58,7 @@ public class SpaceGameHexTile {
     public SpaceGameHexTile[] getNeighbors(){
         //6 neighboring Hexes
         SpaceGameHexTile[] a = new SpaceGameHexTile[6];
-        IntPoint current = new IntPoint(getPosition());
+        Point current = new Point(getPosition());
         HHexDirection dir = HHexDirection.DownRight;
 
         do{

@@ -1,5 +1,7 @@
 package zhaos.spaceagegame.game;
 
+import android.graphics.Point;
+
 import zhaos.spaceagegame.util.HHexDirection;
 import zhaos.spaceagegame.util.IntPoint;
 
@@ -20,7 +22,7 @@ public class Unit {
     private int actionPoints;
 
     //remember position
-    protected IntPoint hexTile;
+    protected Point hexTile;
     protected HHexDirection subsection;
 
     public Unit(SpaceStation s){
@@ -50,9 +52,10 @@ public class Unit {
         return actionPoints;
     }
 
-    public IntPoint getHexTile(){
+    public Point getHexTile(){
         return hexTile;
     }
+
 
     public HHexDirection getSubsection(){
         return subsection;

@@ -1,14 +1,15 @@
-package zhaos.spaceagegame.game;
+package zhaos.spaceagegame.game.resources;
 
 /**
  * Game Action handles passing of information of a game action requested by a Team Controller
  *
  *
  */
-abstract class GameAction {
+public abstract class GameAction {
     int teamID;
     public enum Instruction{
-        move,
+        addToStack,
+
 
     }
     abstract Instruction getInstruction();

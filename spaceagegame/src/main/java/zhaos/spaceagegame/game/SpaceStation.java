@@ -1,5 +1,7 @@
 package zhaos.spaceagegame.game;
 
+import android.graphics.Point;
+
 import zhaos.spaceagegame.util.IntPoint;
 
 /**
@@ -11,14 +13,14 @@ public class SpaceStation{
     private int actions;
     private int affiliation;
 
-    private IntPoint hexTile;
+    private Point hexTile;
 
 
     public int getAffiliation(){
         return affiliation;
     }
 
-    public IntPoint getHexTile(){
+    public Point getHexTile(){
         return hexTile;
     }
 

@@ -15,16 +15,17 @@ public class SpaceGameHexSubsection {
     //The Part of the tile the subsection is part of
     protected HHexDirection position;
 
-    protected Collection<Unit> occupants;
-    protected Collection<SpaceGameConstructionPod> pods;
-    protected int affiliation;
-    protected int[] influenceLevels;
+    private Collection<Unit> occupants;
+    private Collection<SpaceGameConstructionPod> pods;
+    private int affiliation;
+    private int[] influenceLevels;
 
     public SpaceGameHexSubsection(SpaceGameHexTile parent, HHexDirection spot){
         occupants = new ArrayList<>();
         pods = new ArrayList<>();
         this.parent = parent;
         position = spot;
+        affiliation = -1;
     }
 
     public int getAffiliation(){
