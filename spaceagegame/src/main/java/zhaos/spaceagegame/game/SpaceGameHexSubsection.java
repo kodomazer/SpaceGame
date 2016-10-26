@@ -1,5 +1,7 @@
 package zhaos.spaceagegame.game;
 
+import android.graphics.Point;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -33,14 +35,24 @@ public class SpaceGameHexSubsection {
     }
 
     public boolean moveIn(Unit e){
+        boolean neighbor=false;
+        for(SpaceGameHexSubsection subsections:getNeighbors()){
+            if(e.getSubsection()==this)
+                neighbor = true;
+        }
+        if(!neighbor)return false;
+
         if(e.getAffiliation()==affiliation){
             occupants.add(e);
+            e.getSubsection().moveOut(e);
+            e.setSubsection(parent,this);
             return true;
         }
         return false;
     }
     public boolean moveIn(Unit e,SpaceGameConstructionPod c){
         if(e.getAffiliation()==affiliation){
+
             occupants.add(e);
             pods.add(c);
             return true;
@@ -101,4 +113,7 @@ public class SpaceGameHexSubsection {
         }
     }
 
+    public Point getParentPosition() {
+        return parent.getPosition();
+    }
 }

@@ -1,6 +1,7 @@
 package zhaos.spaceagegame.game;
 
 import android.graphics.Point;
+import android.widget.Space;
 
 import zhaos.spaceagegame.util.HHexDirection;
 import zhaos.spaceagegame.util.IntPoint;
@@ -22,17 +23,19 @@ public class Unit {
     private int actionPoints;
 
     //remember position
-    protected Point hexTile;
-    protected HHexDirection subsection;
+    protected SpaceGameHexTile hexTile;
+    protected SpaceGameHexSubsection subsection;
+    private SpaceGameLocal game;
 
     public Unit(SpaceStation s){
         teamID = s.getAffiliation();
         level = 1;
         hexTile = s.getHexTile();
-        subsection = HHexDirection.CENTER;
+        subsection = hexTile.getSubsection(HHexDirection.CENTER);
     }
 
     public void mainResetPhase(){
+
         actionPoints = 3;
     }
 
@@ -40,28 +43,30 @@ public class Unit {
         actionPoints = 1;
     }
 
+    public int remainingActions(){
+        return actionPoints;
+    }
+
     public int getAffiliation() {
         return teamID;
+    }
+
+    public SpaceGameHexTile getHexTile(){
+        return hexTile;
     }
 
     public int getLevel(){
         return level;
     }
 
-    public int remainingActions(){
-        return actionPoints;
-    }
-
-    public Point getHexTile(){
-        return hexTile;
-    }
-
-
-    public HHexDirection getSubsection(){
+    public SpaceGameHexSubsection getSubsection(){
         return subsection;
     }
 
 
+    public void setSubsection(SpaceGameHexTile tile,SpaceGameHexSubsection subsection){
+
+    }
 
 
 

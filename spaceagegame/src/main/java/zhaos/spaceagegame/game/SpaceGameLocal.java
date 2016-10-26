@@ -3,6 +3,8 @@ package zhaos.spaceagegame.game;
 
 import android.graphics.Point;
 import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -11,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 
-import zhaos.spaceagegame.game.resources.InfoBundle;
 import zhaos.spaceagegame.game.resources.MyBundle;
 import zhaos.spaceagegame.game.resources.Request;
 import zhaos.spaceagegame.game.resources.RequestConstants;
@@ -21,6 +22,7 @@ import zhaos.spaceagegame.util.IntPoint;
 
 /**
  * Created by kodomazer on 9/19/2016.
+ * Local hosting of Space Game for single player/hotseat games
  */
 public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     private static final String TAG = "Local Space Game";
@@ -29,12 +31,19 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     private boolean running;
     private final Object action= new Object();
     private SynchronousQueue<Request> actionQueue;
+    private final Request.RequestCallback emptyCallback = new Request.RequestCallback() {
+        @Override
+        public void onComplete(MyBundle info) {
+            //do Nothing
+        }
+    };
 
     public static SpaceGameLocal getInstance(){
         if(instance==null)instance = new SpaceGameLocal();
         return instance;
     }
 
+    private Handler mainThread;
 
     private int lastUnitID;
     private Map<Integer,Unit> unitList;
@@ -80,8 +89,12 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     private GamePhase gamePhase;
 
     private enum GamePhase{
-        uninitialized;
-
+        uninitialized, reset,
+        production,
+        move,
+        combat1,
+        combat2,
+        combat3;
     }
 
 
@@ -89,6 +102,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         //Initialize
         gamePhase = GamePhase.uninitialized;
         initializeDirections();
+
 
         radius = -1;
         teamCount = -1;
@@ -120,6 +134,9 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
                 case RequestConstants.HEX_INFO:
                     getHexInfo(action);
                     break;
+                case RequestConstants.UNIT_MOVE:
+                    moveUnit(action);
+                    break;
                 default:
                     //do nothing
 
@@ -129,8 +146,53 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         return null;
     }
 
+    private void moveUnit(Request action) {
+        MyBundle bundle = action.getThisRequest();
+        Request.RequestCallback callback = action.getCallback();
+        if(callback==null)callback = emptyCallback;
+
+        int faction = bundle.getInt(RequestConstants.FACTION_ID);
+        int unitID = bundle.getInt(RequestConstants.UNIT_ID);
+        Unit unit = getUnit(unitID);
+        if(unit.getAffiliation()!=faction)return;
+
+        selectUnit(unit);
+        SpaceGameHexSubsection[] valid = moves();
+        Point destinationHex = bundle.getPoint(RequestConstants.DESTINATION_HEX);
+        HHexDirection destinationSubsection
+                = bundle.getSubsection(RequestConstants.DESTINATION_SUBSECTION);
+
+        Point originHex = bundle.getPoint(RequestConstants.ORIGIN_HEX);
+        HHexDirection originSubsection = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
+
+        if(unit.getHexTile().getPosition() != originHex) {
+            actionCompleted(callback,bundle,false);
+            return;
+        }
+        if(unit.getSubsection().getPosition() != originSubsection) {
+            actionCompleted(callback,bundle,false);
+            return;
+        }
+
+
+        for(SpaceGameHexSubsection section:valid) {
+            if (section.getParentPosition() == destinationHex) {
+                if (section.getPosition() == destinationSubsection) {
+                    if(section.getAffiliation()==faction||section.getAffiliation()==0){
+                        getHex(originHex).getSubsection(originSubsection).moveOut(unit);
+                        section.moveIn(unit);
+                        unit.combatResetPhase();
+                        break;
+                    }
+                }
+            }
+        }
+
+        actionCompleted(callback,bundle,true);
+    }
+
     private void getUnitInfo(Request action) {
-        InfoBundle info = new InfoBundle();
+        MyBundle info = new MyBundle();
         Request.RequestCallback callback = action.getCallback();
         if (callback == null) return;
 
@@ -142,14 +204,14 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
             return;
         }
 
-        info.putPoint(RequestConstants.ORIGIN_HEX,selectedUnit.getHexTile());
+        info.putPoint(RequestConstants.ORIGIN_HEX,selectedUnit.getHexTile().getPosition());
         info.putInt(RequestConstants.LEVEL,selectedUnit.getLevel());
         info.putInt(RequestConstants.FACTION_ID,selectedUnit.getAffiliation());
-        callback.onComplete(info);
+        actionCompleted(callback,info,true);
     }
 
     private void getHexInfo(Request action){
-        InfoBundle info = new InfoBundle();
+        MyBundle info = new MyBundle();
         Request.RequestCallback callback = action.getCallback();
         if (callback == null) return;
 
@@ -170,11 +232,15 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         }
         info.putArrayList(RequestConstants.SUBSECTION_LIST,subsectionList);
 
-        callback.onComplete(info);
+        actionCompleted(callback,info,true);
     }
 
     private SpaceGameHexTile getHex(Point position) {
         return tileMap.get(position);
+    }
+
+    private Unit getUnit(int unitID) {
+        return unitList.get(unitID);
     }
 
     //returns the radius of the game
@@ -191,6 +257,10 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
                 return true;
             }
         return false;
+    }
+
+    public void setHandler(Handler mainHandler){
+        mainThread = mainHandler;
     }
 
     public boolean setTeamCount(int teamCount) {
@@ -211,9 +281,6 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
 
     }
 
-    public SpaceGameHexTile getTile(IntPoint position) {
-        return tileMap.get(new Point(position.x,position.y));
-    }
 
     public SpaceGameHexTile getTile(Point position) {
         return tileMap.get(position);
@@ -231,9 +298,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         ArrayList<SpaceGameHexSubsection> a = new ArrayList<>();
         int team = activeUnit.getAffiliation();
         int tile;
-        for (SpaceGameHexSubsection s : getTile(activeUnit.getHexTile())//get Tile
-                .getSubsection(activeUnit.getSubsection())//get subsection
-                .getNeighbors()){
+        for (SpaceGameHexSubsection s : activeUnit.getSubsection().getNeighbors()){
             tile = s.getAffiliation();
             if( tile == team || tile == 0)
                 a.add(s);
@@ -245,9 +310,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         ArrayList<SpaceGameHexSubsection> a = new ArrayList<>();
         int team = activeUnit.getAffiliation();
         int tile;
-        for (SpaceGameHexSubsection s : getTile(activeUnit.getHexTile())//get Tile
-                .getSubsection(activeUnit.getSubsection())//get subsection
-                .getNeighbors()) {
+        for (SpaceGameHexSubsection s : activeUnit.getSubsection().getNeighbors()) {
             tile = s.getAffiliation();
             if (tile == team || tile == 0)
                 continue;
@@ -262,6 +325,17 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     public void doAction(Request gameAction){
         //Not sure if this necessarily is thread safe or not
         actionQueue.offer(gameAction);
+    }
+
+    private void actionCompleted(final Request.RequestCallback callback,final MyBundle info,boolean success){
+        info.putBoolean(RequestConstants.SUCCESS,success);
+        mainThread.post(new Runnable() {
+            @Override
+            public void run() {
+
+                callback.onComplete(info);
+            }
+        });
     }
 
 
@@ -280,9 +354,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     private void calculateAreaOfInfluence() {
         for (TeamController t : teams) {
             for (Unit u : t.getUnits()) {
-                tileMap.get(u.getHexTile())
-                        .getSubsection(u.getSubsection())
-                        .updateInfluence(6, u.getAffiliation());
+                u.getSubsection().updateInfluence(6, u.getAffiliation());
             }
         }
     }

@@ -39,10 +39,17 @@ public class MyBundle {
         return (Point) map.get(name);
     }
 
+    public HHexDirection getSubsection(String name) {
+        return HHexDirection.getDirection(getInt(name));
+    }
+
+    public boolean getBoolean(String name){
+        return (boolean)map.get(name);
+    }
+
     //Setters for encoding
     public void putArrayList(String name, ArrayList list){
         map.put(name,list);
-
     }
 
     public void putPoint(String name,Point value){
@@ -55,5 +62,9 @@ public class MyBundle {
 
     public void putInt(String name, int value){
         map.put(name,value);
+    }
+
+    public void putBoolean(String name, boolean b) {
+        map.put(name,b);
     }
 }

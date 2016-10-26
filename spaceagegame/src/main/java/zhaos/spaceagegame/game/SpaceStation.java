@@ -13,14 +13,14 @@ public class SpaceStation{
     private int actions;
     private int affiliation;
 
-    private Point hexTile;
+    private SpaceGameHexTile hexTile;
 
 
     public int getAffiliation(){
         return affiliation;
     }
 
-    public Point getHexTile(){
+    public SpaceGameHexTile getHexTile(){
         return hexTile;
     }
 

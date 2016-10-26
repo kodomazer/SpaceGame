@@ -2,6 +2,7 @@ package zhaos.spaceagegame.ui;
 
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,7 +16,6 @@ import java.util.Map;
 import zhaos.spaceagegame.R;
 import zhaos.spaceagegame.game.SpaceGameLocal;
 import zhaos.spaceagegame.game.SpaceGameHexTile;
-import zhaos.spaceagegame.game.resources.InfoBundle;
 import zhaos.spaceagegame.game.resources.MyBundle;
 import zhaos.spaceagegame.game.resources.Request;
 import zhaos.spaceagegame.game.resources.RequestConstants;
@@ -31,7 +31,7 @@ import zhaos.spaceagegame.util.IntPoint;
 class GameUIManager implements Runnable {
     private String TAG = "UI Manager";
 
-
+    Handler mainHandler;
     private SpaceGameActivity parent;
 
     private final float ANGLEWIDTH = 0.5f;
@@ -58,6 +58,7 @@ class GameUIManager implements Runnable {
 
     GameUIManager(SpaceGameActivity parent){
         (this).parent=parent;
+        mainHandler = new Handler(parent.getMainLooper());
         densityPixel = parent.densityPixel;
         mainView =(RelativeLayout) parent.findViewById(R.id.MainView);
         infoText = new TextView[7];
@@ -81,6 +82,7 @@ class GameUIManager implements Runnable {
     @Override
     public void run() {
         game = SpaceGameLocal.getInstance();
+        game.setHandler(mainHandler);
         Bundle extras = parent.getIntent().getExtras();
 
         //Set Game options
@@ -147,7 +149,7 @@ class GameUIManager implements Runnable {
                     request.putPoint(RequestConstants.ORIGIN_HEX,clickPoint);
                     game.doAction(new Request(request, new Request.RequestCallback() {
                         @Override
-                        public void onComplete(InfoBundle info) {
+                        public void onComplete(MyBundle info) {
                             if(info==null)return;
                             ArrayList<MyBundle> subsectionList=
                                     (ArrayList<MyBundle>)

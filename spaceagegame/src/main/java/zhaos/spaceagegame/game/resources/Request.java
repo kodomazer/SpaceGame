@@ -1,5 +1,7 @@
 package zhaos.spaceagegame.game.resources;
 
+import android.os.Bundle;
+
 /**
  * Created by kodomazer on 10/22/2016.
  */
@@ -17,7 +19,7 @@ public class Request {
 
 
     public interface RequestCallback {
-        void onComplete(InfoBundle info);
+        void onComplete(MyBundle info);
     }
 
     public MyBundle getThisRequest() {
