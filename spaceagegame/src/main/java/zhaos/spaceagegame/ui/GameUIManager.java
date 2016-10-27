@@ -3,7 +3,6 @@ package zhaos.spaceagegame.ui;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -21,7 +20,6 @@ import zhaos.spaceagegame.game.resources.Request;
 import zhaos.spaceagegame.game.resources.RequestConstants;
 import zhaos.spaceagegame.util.FloatPoint;
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.util.IntPoint;
 
 /**
  * Created by kodomazer on 9/27/2016.
@@ -99,7 +97,7 @@ class GameUIManager implements Runnable {
         HexGUI gui;
         for(SpaceGameHexTile t:game.getTiles()) {
             position = t.getPosition();
-            pixelPosition = position(position);
+            pixelPosition = topLeftCornerPosition(position);
             gui = new HexGUI(mainView,
                     t,
                     new Point((int) pixelPosition.x, (int) pixelPosition.y),
@@ -126,7 +124,7 @@ class GameUIManager implements Runnable {
             gui.setClickable(false);
         }
 
-        //take care of touch inputs
+        //Remember where was last touched
         mainView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -136,31 +134,12 @@ class GameUIManager implements Runnable {
                 return false;
             }
         });
+        //Gets notified if there was actually a click
         mainView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Point clickPoint = getHex(xPosition,yPosition);
-                infoText[0].setText(clickPoint.toString());
-                HexGUI clicked = GUIGrid.get(clickPoint);
-                if(clicked !=null){
-                    clicked.performClick();
-                    MyBundle request = new MyBundle();
-                    request.putInt(RequestConstants.INSTRUCTION,RequestConstants.HEX_INFO);
-                    request.putPoint(RequestConstants.ORIGIN_HEX,clickPoint);
-                    game.doAction(new Request(request, new Request.RequestCallback() {
-                        @Override
-                        public void onComplete(MyBundle info) {
-                            if(info==null)return;
-                            ArrayList<MyBundle> subsectionList=
-                                    (ArrayList<MyBundle>)
-                                            info.getArrayList(RequestConstants.SUBSECTION_LIST);
-                            for(MyBundle subsectionBundle:subsectionList){
-                                String text = ""+subsectionBundle.getInt(RequestConstants.FACTION_ID);
-                                infoText[subsectionBundle.getInt(RequestConstants.ORIGIN_SUBSECTION)]
-                                        .setText(text);
-                            }
-                        }
-                    }));}
+                onHexClicked();
+
             }
         });
     }
@@ -183,7 +162,7 @@ class GameUIManager implements Runnable {
         }
     }
 
-    private Point getHex(int x,int y){
+    private Point findClickedHex(int x, int y){
         Point point=new Point();
         boolean top=false;
         point.set((int)(x/(relativeCenterWidth+relativeAngleWidth)),
@@ -219,7 +198,68 @@ class GameUIManager implements Runnable {
         return point;
     }
 
-    private FloatPoint position(Point coordinate){
+    private void onHexClicked() {
+        Point clickPoint = findClickedHex(xPosition, yPosition);
+        infoText[0].setText(clickPoint.toString());
+        HexGUI clicked = GUIGrid.get(clickPoint);
+        if (clicked == null) return;
+
+        clicked.performClick();
+        MyBundle request = new MyBundle();
+        request.putInt(RequestConstants.INSTRUCTION, RequestConstants.HEX_INFO);
+        request.putPoint(RequestConstants.ORIGIN_HEX, clickPoint);
+        //Function to build UI once the info is returned
+        game.sendRequest(new Request(request, new Request.RequestCallback() {
+            @Override
+            public void onComplete(MyBundle info) {
+                handleHexInfo(info);
+            }
+        }));
+    }
+
+    private void handleHexInfo(MyBundle info){
+        if (info == null) return;
+        ArrayList<MyBundle> subsectionList =
+                (ArrayList<MyBundle>)
+                        info.getArrayList(RequestConstants.SUBSECTION_LIST);
+        for (MyBundle subsectionBundle : subsectionList) {
+            final Point hex = subsectionBundle
+                    .getPoint(RequestConstants.ORIGIN_HEX);
+            final HHexDirection subsection = subsectionBundle
+                    .getSubsection(RequestConstants.ORIGIN_SUBSECTION);
+            String text = subsection.toString() + ": \nFaction: " +
+                    subsectionBundle.getInt(RequestConstants.FACTION_ID);
+            infoText[subsection.i()]
+                    .setText(text);
+            infoText[subsection.i()]
+                    .setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            subsectionClicked(hex,subsection);
+
+                        }
+                    });
+        }
+    }
+
+    private void subsectionClicked(Point hex, HHexDirection subsection) {
+        MyBundle request = new MyBundle();
+        request.putInt(RequestConstants.INSTRUCTION,RequestConstants.SUBSECTION_INFO);
+        request.putPoint(RequestConstants.ORIGIN_HEX,hex);
+        request.putSubsection(RequestConstants.ORIGIN_SUBSECTION,subsection);
+        game.sendRequest(new Request(request, new Request.RequestCallback() {
+            @Override
+            public void onComplete(MyBundle info) {
+                handleSubsectionInfo(info);
+            }
+        }));
+    }
+
+    private void handleSubsectionInfo(MyBundle info) {
+
+    }
+
+    private FloatPoint topLeftCornerPosition(Point coordinate){
         FloatPoint visiblePosition = new FloatPoint();
         visiblePosition.x = coordinate.x*(relativeAngleWidth+relativeCenterWidth);
         visiblePosition.y = coordinate.y*2*relativeHalfHeight;

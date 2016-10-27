@@ -26,15 +26,17 @@ public class RequestConstants {
 
     //Hex Info
     public static final String SUBSECTION_LIST = "subsections";
+
     //Game Info
-    public final static int GAME_INFO   =   0x0000;
-    //Unit Actions
-    public final static int UNIT_INFO   =   0x0100;
-    public final static int UNIT_MOVE   =   0x0101;
+    public final static int GAME_INFO       =   0x0000;
 
-    public final static int UNIT_SELECT =   0x0102;
-
-    public final static int UNIT_ATTACK =   0x0103;
     //Hex Actions
-    public final static int HEX_INFO    =   0x0200;
+    public final static int HEX_INFO        =   0x0010;
+    public static final int SUBSECTION_INFO =   0x0020;
+
+    //Unit Actions
+    public final static int UNIT_INFO       =   0x0100;
+    public final static int UNIT_MOVE       =   0x0101;
+    public final static int UNIT_SELECT     =   0x0102;
+    public final static int UNIT_ATTACK     =   0x0103;
 }

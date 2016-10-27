@@ -89,7 +89,9 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     private GamePhase gamePhase;
 
     private enum GamePhase{
-        uninitialized, reset,
+        uninitialized,
+        start,
+        reset,
         production,
         move,
         combat1,
@@ -134,6 +136,9 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
                 case RequestConstants.HEX_INFO:
                     getHexInfo(action);
                     break;
+                case RequestConstants.SUBSECTION_INFO:
+                    getSubsectionInfo(action);
+                    break;
                 case RequestConstants.UNIT_MOVE:
                     moveUnit(action);
                     break;
@@ -145,6 +150,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
 
         return null;
     }
+
 
     private void moveUnit(Request action) {
         MyBundle bundle = action.getThisRequest();
@@ -224,8 +230,11 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
             return;}
 
         ArrayList<MyBundle> subsectionList = new ArrayList<>();
+
+        //Build Bundles for each subsection and then adds it to a list
         for(SpaceGameHexSubsection subsection:hex.getSubsections()){
             MyBundle subInfo = new MyBundle();
+            subInfo.putPoint(RequestConstants.ORIGIN_HEX,subsection.getParentPosition());
             subInfo.putSubsection(RequestConstants.ORIGIN_SUBSECTION,subsection.getPosition());
             subInfo.putInt(RequestConstants.FACTION_ID,subsection.getAffiliation());
             subsectionList.add(subInfo);
@@ -233,6 +242,22 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         info.putArrayList(RequestConstants.SUBSECTION_LIST,subsectionList);
 
         actionCompleted(callback,info,true);
+    }
+
+
+    private void getSubsectionInfo(Request action) {
+        Request.RequestCallback callback = action.getCallback();
+        if (callback == null) return;
+
+        MyBundle bundle = action.getThisRequest();
+        Point position = bundle.getPoint(RequestConstants.ORIGIN_HEX);
+        HHexDirection direction = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
+        SpaceGameHexSubsection subsection = getHex(position).getSubsection(direction);
+
+
+
+
+        actionCompleted(callback,bundle,true);
     }
 
     private SpaceGameHexTile getHex(Point position) {
@@ -322,7 +347,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
 
 
     //methods for Team Controller to give actions
-    public void doAction(Request gameAction){
+    public void sendRequest(Request gameAction){
         //Not sure if this necessarily is thread safe or not
         actionQueue.offer(gameAction);
     }

@@ -50,7 +50,7 @@
             <include
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                layout="@layout/hex" />
+                layout="@layout/hex_info" />
         </FrameLayout>
     </ScrollView>
 
