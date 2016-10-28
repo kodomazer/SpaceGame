@@ -14,6 +14,7 @@ public class SpaceGameHexSubsection {
     //Tile that the subsection belongs to.
     protected SpaceGameHexTile parent;
 
+
     //The Part of the tile the subsection is part of
     protected HHexDirection position;
 

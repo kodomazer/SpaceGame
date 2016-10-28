@@ -1,12 +1,9 @@
 package zhaos.spaceagegame.game.resources;
 
 import android.graphics.Point;
-import android.os.Bundle;
 import android.util.ArrayMap;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import zhaos.spaceagegame.util.HHexDirection;
 
@@ -25,6 +22,10 @@ public class MyBundle {
     //Getters for decoding
     public ArrayList getArrayList(String name){
         return (ArrayList)map.get(name);
+    }
+
+    public MyBundle getBundle(String name){
+        return (MyBundle)map.get(name);
     }
 
     public int getInt(String name,int defaultValue){
@@ -50,6 +51,10 @@ public class MyBundle {
     //Setters for encoding
     public void putArrayList(String name, ArrayList list){
         map.put(name,list);
+    }
+
+    public void putBundle(String name, MyBundle bundle){
+        map.put(name,bundle);
     }
 
     public void putPoint(String name,Point value){

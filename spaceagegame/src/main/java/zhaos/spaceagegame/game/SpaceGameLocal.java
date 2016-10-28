@@ -24,12 +24,12 @@ import zhaos.spaceagegame.util.IntPoint;
  * Created by kodomazer on 9/19/2016.
  * Local hosting of Space Game for single player/hotseat games
  */
-public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
+public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
     private static final String TAG = "Local Space Game";
     //Singleton
     private static SpaceGameLocal instance;
     private boolean running;
-    private final Object action= new Object();
+    private final Object action = new Object();
     private SynchronousQueue<Request> actionQueue;
     private final Request.RequestCallback emptyCallback = new Request.RequestCallback() {
         @Override
@@ -38,23 +38,23 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         }
     };
 
-    public static SpaceGameLocal getInstance(){
-        if(instance==null)instance = new SpaceGameLocal();
+    public static SpaceGameLocal getInstance() {
+        if (instance == null) instance = new SpaceGameLocal();
         return instance;
     }
 
     private Handler mainThread;
 
     private int lastUnitID;
-    private Map<Integer,Unit> unitList;
+    private Map<Integer, Unit> unitList;
 
     private int lastPodID;
-    private Map<Integer,SpaceGameConstructionPod> podList;
+    private Map<Integer, SpaceGameConstructionPod> podList;
 
     private int lastCityID;
-    private Map<Integer,SpaceStation> cityList;
+    private Map<Integer, SpaceStation> cityList;
 
-    private Map<Point,SpaceGameHexTile> tileMap;
+    private Map<Point, SpaceGameHexTile> tileMap;
     private TeamController[] teams;
 
     private int radius;
@@ -88,7 +88,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
      */
     private GamePhase gamePhase;
 
-    private enum GamePhase{
+    private enum GamePhase {
         uninitialized,
         start,
         reset,
@@ -112,24 +112,28 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         actionQueue = new SynchronousQueue<>(true);
 
         tileMap = new HashMap<>();
-        teams=null;
+        teams = null;
     }
 
     @Override
     protected Void doInBackground(Void... params) {
+
+
         running = true;
-        while(true) {
+        while (true) {
             if (!running) break;
             Log.i(TAG, "doInBackground: running");
             Request action;
             try {
-                 action = actionQueue.take();
-            }
-            catch (InterruptedException i){
+                action = actionQueue.take();
+            } catch (InterruptedException i) {
                 continue;
             }
             MyBundle requestBundle = action.getThisRequest();
             switch (requestBundle.getInt(RequestConstants.INSTRUCTION)) {
+                case RequestConstants.GAME_INFO:
+                    getGameInfo(action);
+                    break;
                 case RequestConstants.UNIT_INFO:
                     getUnitInfo(action);
                     break;
@@ -152,15 +156,16 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     }
 
 
+
     private void moveUnit(Request action) {
         MyBundle bundle = action.getThisRequest();
         Request.RequestCallback callback = action.getCallback();
-        if(callback==null)callback = emptyCallback;
+        if (callback == null) callback = emptyCallback;
 
         int faction = bundle.getInt(RequestConstants.FACTION_ID);
         int unitID = bundle.getInt(RequestConstants.UNIT_ID);
         Unit unit = getUnit(unitID);
-        if(unit.getAffiliation()!=faction)return;
+        if (unit.getAffiliation() != faction) return;
 
         selectUnit(unit);
         SpaceGameHexSubsection[] valid = moves();
@@ -171,20 +176,20 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         Point originHex = bundle.getPoint(RequestConstants.ORIGIN_HEX);
         HHexDirection originSubsection = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
 
-        if(unit.getHexTile().getPosition() != originHex) {
-            actionCompleted(callback,bundle,false);
+        if (unit.getHexTile().getPosition() != originHex) {
+            actionCompleted(callback, bundle, false);
             return;
         }
-        if(unit.getSubsection().getPosition() != originSubsection) {
-            actionCompleted(callback,bundle,false);
+        if (unit.getSubsection().getPosition() != originSubsection) {
+            actionCompleted(callback, bundle, false);
             return;
         }
 
 
-        for(SpaceGameHexSubsection section:valid) {
+        for (SpaceGameHexSubsection section : valid) {
             if (section.getParentPosition() == destinationHex) {
                 if (section.getPosition() == destinationSubsection) {
-                    if(section.getAffiliation()==faction||section.getAffiliation()==0){
+                    if (section.getAffiliation() == faction || section.getAffiliation() == 0) {
                         getHex(originHex).getSubsection(originSubsection).moveOut(unit);
                         section.moveIn(unit);
                         unit.combatResetPhase();
@@ -194,7 +199,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
             }
         }
 
-        actionCompleted(callback,bundle,true);
+        actionCompleted(callback, bundle, true);
     }
 
     private void getUnitInfo(Request action) {
@@ -210,13 +215,17 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
             return;
         }
 
-        info.putPoint(RequestConstants.ORIGIN_HEX,selectedUnit.getHexTile().getPosition());
-        info.putInt(RequestConstants.LEVEL,selectedUnit.getLevel());
-        info.putInt(RequestConstants.FACTION_ID,selectedUnit.getAffiliation());
-        actionCompleted(callback,info,true);
+        info.putPoint(RequestConstants.ORIGIN_HEX, selectedUnit.getHexTile().getPosition());
+        info.putInt(RequestConstants.LEVEL, selectedUnit.getLevel());
+        info.putInt(RequestConstants.FACTION_ID, selectedUnit.getAffiliation());
+        actionCompleted(callback, info, true);
     }
 
-    private void getHexInfo(Request action){
+    private void getGameInfo(Request action) {
+
+    }
+
+    private void getHexInfo(Request action) {
         MyBundle info = new MyBundle();
         Request.RequestCallback callback = action.getCallback();
         if (callback == null) return;
@@ -225,23 +234,24 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         Point position = bundle.getPoint(RequestConstants.ORIGIN_HEX);
 
         SpaceGameHexTile hex = getHex(position);
-        if(hex==null){
+        if (hex == null) {
             callback.onComplete(null);
-            return;}
+            return;
+        }
 
         ArrayList<MyBundle> subsectionList = new ArrayList<>();
 
         //Build Bundles for each subsection and then adds it to a list
-        for(SpaceGameHexSubsection subsection:hex.getSubsections()){
+        for (SpaceGameHexSubsection subsection : hex.getSubsections()) {
             MyBundle subInfo = new MyBundle();
-            subInfo.putPoint(RequestConstants.ORIGIN_HEX,subsection.getParentPosition());
-            subInfo.putSubsection(RequestConstants.ORIGIN_SUBSECTION,subsection.getPosition());
-            subInfo.putInt(RequestConstants.FACTION_ID,subsection.getAffiliation());
+            subInfo.putPoint(RequestConstants.ORIGIN_HEX, subsection.getParentPosition());
+            subInfo.putSubsection(RequestConstants.ORIGIN_SUBSECTION, subsection.getPosition());
+            subInfo.putInt(RequestConstants.FACTION_ID, subsection.getAffiliation());
             subsectionList.add(subInfo);
         }
-        info.putArrayList(RequestConstants.SUBSECTION_LIST,subsectionList);
+        info.putArrayList(RequestConstants.SUBSECTION_LIST, subsectionList);
 
-        actionCompleted(callback,info,true);
+        actionCompleted(callback, info, true);
     }
 
 
@@ -255,9 +265,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         SpaceGameHexSubsection subsection = getHex(position).getSubsection(direction);
 
 
-
-
-        actionCompleted(callback,bundle,true);
+        actionCompleted(callback, bundle, true);
     }
 
     private SpaceGameHexTile getHex(Point position) {
@@ -269,7 +277,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     }
 
     //returns the radius of the game
-    public int getRadius(){
+    public int getRadius() {
         return radius;
     }
 
@@ -284,7 +292,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         return false;
     }
 
-    public void setHandler(Handler mainHandler){
+    public void setHandler(Handler mainHandler) {
         mainThread = mainHandler;
     }
 
@@ -299,9 +307,9 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     }
 
 
-    private void initializeTeams(int teamCount){
+    private void initializeTeams(int teamCount) {
         teams = new TeamController[teamCount];
-        for(int i = 0;i<teamCount;i++)
+        for (int i = 0; i < teamCount; i++)
             teams[i] = new TeamController();
 
     }
@@ -311,21 +319,21 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         return tileMap.get(position);
     }
 
-    public Collection<SpaceGameHexTile> getTiles(){
+    public Collection<SpaceGameHexTile> getTiles() {
         return tileMap.values();
     }
 
-    public void selectUnit(Unit e){
+    private void selectUnit(Unit e) {
         activeUnit = e;
     }
 
-    public SpaceGameHexSubsection[] moves() {
+    private SpaceGameHexSubsection[] moves() {
         ArrayList<SpaceGameHexSubsection> a = new ArrayList<>();
         int team = activeUnit.getAffiliation();
         int tile;
-        for (SpaceGameHexSubsection s : activeUnit.getSubsection().getNeighbors()){
+        for (SpaceGameHexSubsection s : activeUnit.getSubsection().getNeighbors()) {
             tile = s.getAffiliation();
-            if( tile == team || tile == 0)
+            if (tile == team || tile == 0)
                 a.add(s);
         }
         return (SpaceGameHexSubsection[]) a.toArray();
@@ -345,19 +353,18 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     }
 
 
-
     //methods for Team Controller to give actions
-    public void sendRequest(Request gameAction){
+    public void sendRequest(Request gameAction) {
         //Not sure if this necessarily is thread safe or not
         actionQueue.offer(gameAction);
     }
 
-    private void actionCompleted(final Request.RequestCallback callback,final MyBundle info,boolean success){
-        info.putBoolean(RequestConstants.SUCCESS,success);
+    private void actionCompleted(final Request.RequestCallback callback,
+                                 final MyBundle info, boolean success) {
+        info.putBoolean(RequestConstants.SUCCESS, success);
         mainThread.post(new Runnable() {
             @Override
             public void run() {
-
                 callback.onComplete(info);
             }
         });
@@ -365,9 +372,9 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
 
 
     //Phases
-    protected void resetPhase(){
-        for(SpaceGameHexTile h: tileMap.values()){
-            for(SpaceGameHexSubsection s : h.getSubsections()){
+    protected void resetPhase() {
+        for (SpaceGameHexTile h : tileMap.values()) {
+            for (SpaceGameHexSubsection s : h.getSubsections()) {
                 s.resetInfo();
             }
         }
@@ -390,52 +397,52 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
         HHexDirection.Up.setTranslate(new IntPoint.translateInterface() {
             @Override
             public void translatePoint(Point translated) {
-                translated.y-=1;
+                translated.y -= 1;
             }
         });
         HHexDirection.UpRight.setTranslate(new IntPoint.translateInterface() {
             @Override
             public void translatePoint(Point translated) {
-                if(translated.x%2==1){
-                    translated.y-=1;
+                if (translated.x % 2 == 1) {
+                    translated.y -= 1;
                 }
-                translated.x+=1;
+                translated.x += 1;
             }
         });
         HHexDirection.DownRight.setTranslate(new IntPoint.translateInterface() {
             @Override
             public void translatePoint(Point translated) {
-                if(translated.x%2==0){
-                    translated.y+=1;
+                if (translated.x % 2 == 0) {
+                    translated.y += 1;
                 }
-                translated.x+=1;
+                translated.x += 1;
             }
         });
 
         HHexDirection.Down.setTranslate(new IntPoint.translateInterface() {
             @Override
             public void translatePoint(Point translated) {
-                translated.y+=1;
+                translated.y += 1;
             }
         });
 
         HHexDirection.DownLeft.setTranslate(new IntPoint.translateInterface() {
             @Override
             public void translatePoint(Point translated) {
-                if(translated.x%2==0){
-                    translated.y+=1;
+                if (translated.x % 2 == 0) {
+                    translated.y += 1;
                 }
-                translated.x-=1;
+                translated.x -= 1;
             }
         });
 
         HHexDirection.UpLeft.setTranslate(new IntPoint.translateInterface() {
             @Override
             public void translatePoint(Point translated) {
-                if(translated.x%2==1){
-                    translated.y-=1;
+                if (translated.x % 2 == 1) {
+                    translated.y -= 1;
                 }
-                translated.x-=1;
+                translated.x -= 1;
             }
         });
     }
@@ -444,22 +451,22 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void>{
     private void initializeMap(int radius) {
         tileMap = new HashMap<>();
         //center is at (radius*2,radius)
-        Point current = new Point(radius,radius);
+        Point current = new Point(radius, radius);
         HHexDirection facing = HHexDirection.DownLeft;
 
         //Generate map ring by ring, going outward
-        for(int i = 1;i<=radius;i++) {
+        for (int i = 1; i <= radius; i++) {
             //Move up once to move out one ring
             HHexDirection.Up.translatePoint(current);
             //Go each direction once, switch the direction of travel each loop
-            for(int j = 0;j<6;j++,facing = HHexDirection.rotateClockwise(facing))
+            for (int j = 0; j < 6; j++, facing = HHexDirection.rotateClockwise(facing))
                 //Translate in the direction a number of times equal to the radius
                 //Radius is equal to side length
-                for(int k = 0;k<i;k++,facing.translatePoint(current))
+                for (int k = 0; k < i; k++, facing.translatePoint(current))
                     //Add a new hex tile to the tileMap
                     //Deep copy of the Point because the current point will change
                     tileMap.put(new Point(current),
-                            new SpaceGameHexTile(this,current));
+                            new SpaceGameHexTile(this, current));
         }
     }
 

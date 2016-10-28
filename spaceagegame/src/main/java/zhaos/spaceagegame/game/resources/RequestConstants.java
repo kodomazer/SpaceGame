@@ -9,6 +9,8 @@ public class RequestConstants {
     public static final String SUCCESS = "success";
     //Variable Types
     public final static String INSTRUCTION = "INSTRUCTION";
+    public final static String HEX = "startHex";
+    public final static String SUBSECTION = "startSubsection";
     public final static String ORIGIN_HEX = "startHex";
     public final static String ORIGIN_SUBSECTION = "startSubsection";
     public final static String DESTINATION_HEX = "endHex";
@@ -18,14 +20,19 @@ public class RequestConstants {
     //IDs
     public static final String UNIT_ID = "unit ID";
     public static final String CONSTRUCTION_POD_ID = "pod ID";
-    public static final String STATION_ID = "city ID";
-
+    public static final String SPACE_STATION_ID = "city ID";
     public static final String FACTION_ID = "team";
-
     public static final String LEVEL = "level";
+
+    //Faction Info
+    public static final String FACTION_INFO = "faction info";
 
     //Hex Info
     public static final String SUBSECTION_LIST = "subsections";
+    public static final String SPACE_STATION_INFO = "space station info";
+
+    //Unit Info
+    public static final String UNIT_LIST = "units";
 
     //Game Info
     public final static int GAME_INFO       =   0x0000;

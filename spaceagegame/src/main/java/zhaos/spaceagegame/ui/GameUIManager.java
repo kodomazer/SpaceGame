@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -50,6 +52,11 @@ class GameUIManager implements Runnable {
 
     private RelativeLayout mainView;
     private TextView infoText[];
+    private FrameLayout infoFrame;
+    private SubsectionInfoWrapper subsectionInfo;
+    private LinearLayout hexInfo;
+
+
 
     //Density Pixel here is the number of pixels for an inch on the screen
     private FloatPoint densityPixel;
@@ -67,6 +74,10 @@ class GameUIManager implements Runnable {
         infoText[4]=(TextView) parent.findViewById(R.id.Bottom);
         infoText[5]=(TextView) parent.findViewById(R.id.BottomLeft);
         infoText[6]=(TextView) parent.findViewById(R.id.TopLeft);
+
+        infoFrame = (FrameLayout)parent.findViewById(R.id.InfoView);
+        subsectionInfo = new SubsectionInfoWrapper(parent);
+        hexInfo = (LinearLayout) parent.findViewById(R.id.hexInfoBase);
 
         GUIGrid = new HashMap<>();
 
@@ -109,6 +120,10 @@ class GameUIManager implements Runnable {
             gui.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
+                    infoFrame.removeAllViews();
+                    infoFrame.addView(hexInfo);
+
                     parent.setInfoText(((HexGUI)v).hexTile);
                     if(lastClick!=null)
                     lastClick.resetActive();
@@ -219,10 +234,13 @@ class GameUIManager implements Runnable {
 
     private void handleHexInfo(MyBundle info){
         if (info == null) return;
+        infoFrame.removeAllViews();
+        infoFrame.addView(hexInfo);
         ArrayList<MyBundle> subsectionList =
                 (ArrayList<MyBundle>)
                         info.getArrayList(RequestConstants.SUBSECTION_LIST);
         for (MyBundle subsectionBundle : subsectionList) {
+            //TODO Make Subsection groups to GUI view
             final Point hex = subsectionBundle
                     .getPoint(RequestConstants.ORIGIN_HEX);
             final HHexDirection subsection = subsectionBundle
@@ -256,6 +274,10 @@ class GameUIManager implements Runnable {
     }
 
     private void handleSubsectionInfo(MyBundle info) {
+        if(info==null)return;
+        subsectionInfo.setInfo(info);
+        infoFrame.removeAllViews();
+        infoFrame.addView(subsectionInfo);
 
     }
 

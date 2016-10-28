@@ -2,6 +2,7 @@ package zhaos.spaceagegame.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.support.v4.util.Pools;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
@@ -12,14 +13,33 @@ import zhaos.spaceagegame.util.HHexDirection;
  */
 
 public class SubsectionGroup extends RelativeLayout {
+    private static String TAG = "Subsection Group";
+    private static Context context;
+
     protected SubsectionGUI[] subsections;
 
     protected LayoutParams layoutParams;
     protected HexGUI parentHex;
     protected boolean drawn;
 
+     private static final Pools.SynchronizedPool<SubsectionGroup> sPool =
+             new Pools.SynchronizedPool<SubsectionGroup>(50);
 
-    public SubsectionGroup(Context context) {
+     public static SubsectionGroup obtain() {
+        SubsectionGroup instance = sPool.acquire();
+         return (instance != null) ? instance : new SubsectionGroup(context);
+    }
+
+public void recycle() {
+          // Clear state if needed.
+          sPool.release(this);
+    }
+
+    static void setContext(Context context){
+        SubsectionGroup.context = context;
+    }
+
+    private SubsectionGroup(Context context) {
         super(context);
 
         subsections = new SubsectionGUI[7];
