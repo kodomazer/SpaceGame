@@ -4,6 +4,7 @@ import android.graphics.Point;
 import android.util.ArrayMap;
 
 import java.util.ArrayList;
+import java.util.jar.Attributes;
 
 import zhaos.spaceagegame.util.HHexDirection;
 
@@ -20,8 +21,17 @@ public class MyBundle {
     }
 
     //Getters for decoding
-    public ArrayList getArrayList(String name){
-        return (ArrayList)map.get(name);
+    public <T> ArrayList<T> getArrayList(String name){
+        ArrayList<T> array=null;
+        try {
+            Object listObject =  map.get(name);
+            ArrayList list = (ArrayList)listObject;
+            array = (ArrayList<T>)listObject;
+        }
+        catch (ClassCastException cast){
+            return null;
+        }
+        return array;
     }
 
     public MyBundle getBundle(String name){
@@ -49,7 +59,7 @@ public class MyBundle {
     }
 
     //Setters for encoding
-    public void putArrayList(String name, ArrayList list){
+    public void putArrayList(String name, ArrayList<?> list){
         map.put(name,list);
     }
 

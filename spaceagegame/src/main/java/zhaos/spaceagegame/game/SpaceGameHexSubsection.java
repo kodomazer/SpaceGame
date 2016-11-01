@@ -10,7 +10,7 @@ import zhaos.spaceagegame.util.HHexDirection;
 /**
  * Created by kodomazer on 9/26/2016.
  */
-public class SpaceGameHexSubsection {
+class SpaceGameHexSubsection {
     //Tile that the subsection belongs to.
     protected SpaceGameHexTile parent;
 
@@ -23,7 +23,7 @@ public class SpaceGameHexSubsection {
     private int affiliation;
     private int[] influenceLevels;
 
-    public SpaceGameHexSubsection(SpaceGameHexTile parent, HHexDirection spot){
+    SpaceGameHexSubsection(SpaceGameHexTile parent, HHexDirection spot){
         occupants = new ArrayList<>();
         pods = new ArrayList<>();
         this.parent = parent;
@@ -35,7 +35,7 @@ public class SpaceGameHexSubsection {
         return affiliation;
     }
 
-    public boolean moveIn(Unit e){
+    boolean moveIn(Unit e){
         boolean neighbor=false;
         for(SpaceGameHexSubsection subsections:getNeighbors()){
             if(e.getSubsection()==this)
@@ -61,11 +61,11 @@ public class SpaceGameHexSubsection {
         return false;
     }
 
-    public boolean moveOut(Unit e){
+    boolean moveOut(Unit e){
         return occupants.remove(e);
     }
 
-    public boolean moveOut(Unit e,SpaceGameConstructionPod c){
+    boolean moveOut(Unit e,SpaceGameConstructionPod c){
         return occupants.remove(e) && pods.remove(c);
     }
 
@@ -99,13 +99,13 @@ public class SpaceGameHexSubsection {
         return position;
     }
 
-    protected void resetInfo(){
+    void resetInfo(){
         for(int i = 0;i<influenceLevels.length;i++){
             influenceLevels[i]=0;
         }
     }
 
-    public void updateInfluence(int influence,int team){
+    void updateInfluence(int influence, int team){
         if(influence<=influenceLevels[team])
             return;
         influenceLevels[team]=influence;
@@ -114,7 +114,10 @@ public class SpaceGameHexSubsection {
         }
     }
 
-    public Point getParentPosition() {
+    Point getParentPosition() {
         return parent.getPosition();
+    }
+    SpaceGameHexTile getParent() {
+        return parent;
     }
 }

@@ -12,7 +12,7 @@ public class SpaceGameCenterSubsection extends SpaceGameHexSubsection {
 
     public SpaceGameCenterSubsection(SpaceGameHexTile parent) {
         super(parent, HHexDirection.CENTER);
-        station = new SpaceStation();
+        station = null;
     }
 
     @Override
@@ -27,4 +27,5 @@ public class SpaceGameCenterSubsection extends SpaceGameHexSubsection {
 
         return a;
     }
+
 }

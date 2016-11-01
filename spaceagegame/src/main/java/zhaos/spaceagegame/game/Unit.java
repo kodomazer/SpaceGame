@@ -12,25 +12,28 @@ import zhaos.spaceagegame.util.IntPoint;
 
 //Base class for anything that can take an action during the game
 
-public class Unit {
+class Unit {
     //0 for neutral anything else is on a team
     private int teamID;
 
     //Level 0 means the unit is dead
     private int level;
+    private int heldPodID;
 
     //Generally means actions remaining
     private int actionPoints;
+    private boolean skippedMainPhase;
 
     //remember position
-    protected SpaceGameHexTile hexTile;
-    protected SpaceGameHexSubsection subsection;
+    private SpaceGameHexTile hexTile;
+    private SpaceGameHexSubsection subsection;
     private SpaceGameLocal game;
 
     public Unit(SpaceStation s){
         teamID = s.getAffiliation();
         level = 1;
         hexTile = s.getHexTile();
+
         subsection = hexTile.getSubsection(HHexDirection.CENTER);
     }
 
@@ -39,7 +42,7 @@ public class Unit {
         actionPoints = 3;
     }
 
-    public void combatResetPhase(){
+    void combatResetPhase(){
         actionPoints = 1;
     }
 
@@ -47,24 +50,24 @@ public class Unit {
         return actionPoints;
     }
 
-    public int getAffiliation() {
+    int getAffiliation() {
         return teamID;
     }
 
-    public SpaceGameHexTile getHexTile(){
+    SpaceGameHexTile getHexTile(){
         return hexTile;
     }
 
-    public int getLevel(){
+    int getLevel(){
         return level;
     }
 
-    public SpaceGameHexSubsection getSubsection(){
+    SpaceGameHexSubsection getSubsection(){
         return subsection;
     }
 
 
-    public void setSubsection(SpaceGameHexTile tile,SpaceGameHexSubsection subsection){
+    void setSubsection(SpaceGameHexTile tile, SpaceGameHexSubsection subsection){
 
     }
 

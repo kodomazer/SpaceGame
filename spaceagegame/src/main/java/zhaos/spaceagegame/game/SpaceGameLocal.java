@@ -470,5 +470,9 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         }
     }
 
+    private void initializeFactionStart(int faction,Point startingHex){
+        tileMap.get(startingHex).placeCity(faction,3);
+
+    }
 
 }

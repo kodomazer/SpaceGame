@@ -237,7 +237,6 @@ class GameUIManager implements Runnable {
         infoFrame.removeAllViews();
         infoFrame.addView(hexInfo);
         ArrayList<MyBundle> subsectionList =
-                (ArrayList<MyBundle>)
                         info.getArrayList(RequestConstants.SUBSECTION_LIST);
         for (MyBundle subsectionBundle : subsectionList) {
             //TODO Make Subsection groups to GUI view

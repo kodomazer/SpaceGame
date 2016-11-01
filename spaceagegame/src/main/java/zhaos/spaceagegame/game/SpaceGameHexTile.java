@@ -80,4 +80,8 @@ public class SpaceGameHexTile {
     public SpaceGameHexSubsection[] getSubsections() {
         return subsections;
     }
+
+    public void placeCity(int faction, int level) {
+
+    }
 }

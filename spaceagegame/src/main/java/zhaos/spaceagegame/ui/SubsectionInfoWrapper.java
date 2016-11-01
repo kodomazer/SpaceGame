@@ -53,7 +53,7 @@ class SubsectionInfoWrapper extends LinearLayout {
             cityInfo.setText("City level: " + level);
         }
 
-        ArrayList<MyBundle> units =  (ArrayList<MyBundle>)
+        ArrayList<MyBundle> units =
                 subsectionInfo.getArrayList(RequestConstants.UNIT_LIST);
 
         unitList.removeAllViews();
@@ -67,6 +67,6 @@ class SubsectionInfoWrapper extends LinearLayout {
 
     }
 
-    
+
 
 }
