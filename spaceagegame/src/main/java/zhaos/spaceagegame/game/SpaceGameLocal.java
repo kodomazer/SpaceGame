@@ -3,8 +3,8 @@ package zhaos.spaceagegame.game;
 
 import android.graphics.Point;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.os.Handler;
+import android.util.ArrayMap;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -13,12 +13,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 
-import zhaos.spaceagegame.game.resources.MyBundle;
-import zhaos.spaceagegame.game.resources.Request;
-import zhaos.spaceagegame.game.resources.RequestConstants;
+import zhaos.spaceagegame.util.MyBundle;
+import zhaos.spaceagegame.util.Request;
+import zhaos.spaceagegame.util.RequestConstants;
 import zhaos.spaceagegame.ui.SpaceGameActivity;
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.util.IntPoint;
 
 /**
  * Created by kodomazer on 9/19/2016.
@@ -29,7 +28,6 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
     //Singleton
     private static SpaceGameLocal instance;
     private boolean running;
-    private final Object action = new Object();
     private SynchronousQueue<Request> actionQueue;
     private final Request.RequestCallback emptyCallback = new Request.RequestCallback() {
         @Override
@@ -45,7 +43,6 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
 
     private Handler mainThread;
 
-    private int lastUnitID;
     private Map<Integer, Unit> unitList;
 
     private int lastPodID;
@@ -111,13 +108,28 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
 
         actionQueue = new SynchronousQueue<>(true);
 
+        unitList = new ArrayMap<>();
+        lastCityID = 1;
+        cityList = new ArrayMap<>();
+        lastPodID = 1;
+        podList = new ArrayMap<>();
+
         tileMap = new HashMap<>();
         teams = null;
     }
 
     @Override
     protected Void doInBackground(Void... params) {
-
+        //testing init
+        SpaceGameHexTile hex = tileMap.get(new Point(2,1));
+        SpaceGameCenterSubsection subsection =
+                (SpaceGameCenterSubsection)hex.getSubsection(HHexDirection.CENTER);
+        SpaceStation city = new SpaceStation(1,hex,lastCityID);
+        subsection.buildCity(city);
+        cityList.put(lastCityID,city);
+        lastCityID+=1;
+        Unit unit = new Unit(subsection.getCity());
+        unitList.put(unit.getID(), unit);
 
         running = true;
         while (true) {
@@ -264,7 +276,25 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         HHexDirection direction = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
         SpaceGameHexSubsection subsection = getHex(position).getSubsection(direction);
 
+        if(direction == HHexDirection.CENTER){
+            MyBundle cityInfo = new MyBundle();
+            SpaceStation city = ((SpaceGameCenterSubsection)subsection).getCity();
+            cityInfo.putInt(RequestConstants.LEVEL,city.getLevel());
+            bundle.putBundle(RequestConstants.SPACE_STATION_INFO,cityInfo);
+        }
 
+        //Handle Units
+        Unit[] units = subsection.getUnits();
+        ArrayList<MyBundle> unitList = new ArrayList<>(units.length);
+        for(Unit unit: units){
+            MyBundle unitInfo = new MyBundle();
+            unitInfo.putInt(RequestConstants.LEVEL,unit.getLevel());
+            unitInfo.putInt(RequestConstants.UNIT_ID,unit.getID());
+            unitList.add(unitInfo);
+        }
+        bundle.putArrayList(RequestConstants.UNIT_LIST,unitList);
+
+        //callback
         actionCompleted(callback, bundle, true);
     }
 
@@ -359,6 +389,10 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         actionQueue.offer(gameAction);
     }
 
+    public void stopGame(){
+        running = false;
+    }
+
     private void actionCompleted(final Request.RequestCallback callback,
                                  final MyBundle info, boolean success) {
         info.putBoolean(RequestConstants.SUCCESS, success);
@@ -394,13 +428,13 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
 
     //Initialize HHexDirection enum translation methods
     private void initializeDirections() {
-        HHexDirection.Up.setTranslate(new IntPoint.translateInterface() {
+        HHexDirection.Up.setTranslate(new HHexDirection.TranslateInterface() {
             @Override
             public void translatePoint(Point translated) {
                 translated.y -= 1;
             }
         });
-        HHexDirection.UpRight.setTranslate(new IntPoint.translateInterface() {
+        HHexDirection.UpRight.setTranslate(new HHexDirection.TranslateInterface() {
             @Override
             public void translatePoint(Point translated) {
                 if (translated.x % 2 == 1) {
@@ -409,7 +443,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
                 translated.x += 1;
             }
         });
-        HHexDirection.DownRight.setTranslate(new IntPoint.translateInterface() {
+        HHexDirection.DownRight.setTranslate(new HHexDirection.TranslateInterface() {
             @Override
             public void translatePoint(Point translated) {
                 if (translated.x % 2 == 0) {
@@ -419,14 +453,14 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
             }
         });
 
-        HHexDirection.Down.setTranslate(new IntPoint.translateInterface() {
+        HHexDirection.Down.setTranslate(new HHexDirection.TranslateInterface() {
             @Override
             public void translatePoint(Point translated) {
                 translated.y += 1;
             }
         });
 
-        HHexDirection.DownLeft.setTranslate(new IntPoint.translateInterface() {
+        HHexDirection.DownLeft.setTranslate(new HHexDirection.TranslateInterface() {
             @Override
             public void translatePoint(Point translated) {
                 if (translated.x % 2 == 0) {
@@ -436,7 +470,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
             }
         });
 
-        HHexDirection.UpLeft.setTranslate(new IntPoint.translateInterface() {
+        HHexDirection.UpLeft.setTranslate(new HHexDirection.TranslateInterface() {
             @Override
             public void translatePoint(Point translated) {
                 if (translated.x % 2 == 1) {

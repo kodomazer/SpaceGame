@@ -16,7 +16,7 @@ public enum HHexDirection {
 
 
     int directionNumber;
-    IntPoint.translateInterface translate;
+    TranslateInterface translate;
     HHexDirection(int i){
         directionNumber = i;
     }
@@ -26,7 +26,7 @@ public enum HHexDirection {
     public void translatePoint(Point i){
         translate.translatePoint(i);
     }
-    public void setTranslate(IntPoint.translateInterface i){
+    public void setTranslate(TranslateInterface i){
         translate = i;
     }
     public static HHexDirection getDirection(int i){
@@ -81,5 +81,9 @@ public enum HHexDirection {
     }
     public static HHexDirection flip(HHexDirection cur){
         return getDirection((cur.i()+3)%6);
+    }
+
+    public interface TranslateInterface {
+        void translatePoint(Point point);
     }
 }

@@ -9,6 +9,7 @@ public class SpaceGameCenterSubsection extends SpaceGameHexSubsection {
 
     //Center subsection can hold a SpaceStation, other subsections cannot
     protected SpaceStation station;
+    private int energyCount;
 
     public SpaceGameCenterSubsection(SpaceGameHexTile parent) {
         super(parent, HHexDirection.CENTER);
@@ -28,4 +29,16 @@ public class SpaceGameCenterSubsection extends SpaceGameHexSubsection {
         return a;
     }
 
+    public SpaceStation getCity() {
+        return station;
+    }
+
+    public void buildCity(SpaceStation spaceStation) {
+        station = spaceStation;
+    }
+
+    public void addUnit(Unit unit) {
+        occupants.add(unit);
+
+    }
 }

@@ -46,9 +46,6 @@ public class HexGUI extends ImageView {
 
         params.leftMargin = position.x;
         params.topMargin = position.y;
-        Log.i(TAG, "HexGUI: HexMade");
-
-
     }
 
     public void setPosition(Point newPosition) {

@@ -1,16 +1,16 @@
 package zhaos.spaceagegame.ui;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import zhaos.spaceagegame.R;
-import zhaos.spaceagegame.game.SpaceGameHexSubsection;
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.util.IntPoint;
+import zhaos.spaceagegame.util.MyBundle;
+import zhaos.spaceagegame.util.RequestConstants;
 
 /**
  * Created by bzhao on 10/4/2016.
@@ -18,15 +18,17 @@ import zhaos.spaceagegame.util.IntPoint;
 public class SubsectionGUI extends ImageView implements View.OnClickListener{
 
     protected SubsectionGroup parentLayout;
-    protected SpaceGameHexSubsection thisSubsection;
+    protected MyBundle thisSubsection;
     private HHexDirection direction;
     private HexGUI parentHex;
 
 
     public SubsectionGUI(RelativeLayout parentLayout){
         super(parentLayout.getContext());
+    }
 
-
+    public SubsectionGUI(Context context){
+        super(context);
     }
 
     public SubsectionGUI(SubsectionGroup parentLayout,
@@ -72,9 +74,8 @@ public class SubsectionGUI extends ImageView implements View.OnClickListener{
 
     public void setAttachedHex(HexGUI hex){
         parentHex = hex;
-        thisSubsection= parentHex.hexTile.getSubsection(direction);
         setAsMoveable();
-        if(thisSubsection.getAffiliation()==-1)
+        if(thisSubsection.getInt(RequestConstants.FACTION_ID)==-1)
             setAsBattle();
     }
 

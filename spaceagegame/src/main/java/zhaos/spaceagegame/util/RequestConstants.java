@@ -1,4 +1,4 @@
-package zhaos.spaceagegame.game.resources;
+package zhaos.spaceagegame.util;
 
 /**
  * Created by kodomazer on 10/22/2016.
@@ -33,6 +33,7 @@ public class RequestConstants {
 
     //Unit Info
     public static final String UNIT_LIST = "units";
+    public static final String CITY_INFO = "city info";
 
     //Game Info
     public final static int GAME_INFO       =   0x0000;

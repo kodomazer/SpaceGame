@@ -3,7 +3,6 @@ package zhaos.spaceagegame.game;
 import android.graphics.Point;
 
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.util.IntPoint;
 
 /**
  * Created by kodomazer on 9/26/2016.
@@ -29,9 +28,10 @@ public class SpaceGameHexTile {
         affiliation = 0;
         //Initialize subsections
         subsections = new SpaceGameHexSubsection[7];
-        for(int i = 0;i<7;i++){
-            subsections[i] = new SpaceGameHexSubsection(this,HHexDirection.getDirection(i));
+        for(int i = 0;i<6;i++) {
+                subsections[i] = new SpaceGameHexSubsection(this, HHexDirection.getDirection(i));
         }
+        subsections[6] = new SpaceGameCenterSubsection(this);
     }
 
 

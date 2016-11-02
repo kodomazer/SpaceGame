@@ -1,4 +1,4 @@
-package zhaos.spaceagegame.game.resources;
+package zhaos.spaceagegame.util;
 
 /**
  * Game Action handles passing of information of a game action requested by a Team Controller

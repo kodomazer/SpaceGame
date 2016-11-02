@@ -1,22 +1,22 @@
 package zhaos.spaceagegame.ui;
 
 import android.content.Context;
-import android.widget.EditText;
+import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 
-import zhaos.spaceagegame.game.resources.MyBundle;
-import zhaos.spaceagegame.game.resources.RequestConstants;
+import zhaos.spaceagegame.util.HHexDirection;
+import zhaos.spaceagegame.util.MyBundle;
+import zhaos.spaceagegame.util.RequestConstants;
 
 /**
  * Created by kodomazer on 10/27/2016.
  */
 
 class SubsectionInfoWrapper extends LinearLayout {
+    private static final String TAG = "Subsection Text Info";
     //City Section
     TextView cityHeader;
     TextView cityInfo;
@@ -45,24 +45,38 @@ class SubsectionInfoWrapper extends LinearLayout {
 
     public void setInfo(MyBundle subsectionInfo){
         MyBundle spaceStation = subsectionInfo.getBundle(RequestConstants.SPACE_STATION_INFO);
-        if(spaceStation == null){
-            cityInfo.setText("No City");
+        if(subsectionInfo.getSubsection(RequestConstants.SUBSECTION)== HHexDirection.CENTER) {
+            cityHeader.setVisibility(VISIBLE);
+            cityInfo.setVisibility(VISIBLE);
+            if (spaceStation == null) {
+                cityInfo.setText("No City");
+            } else {
+                int level = spaceStation.getInt(RequestConstants.LEVEL);
+                cityInfo.setText("City level: " + level);
+            }
         }
-        else {
-            int level = spaceStation.getInt(RequestConstants.LEVEL);
-            cityInfo.setText("City level: " + level);
+        else{
+            cityHeader.setVisibility(INVISIBLE);
+            cityInfo.setVisibility(INVISIBLE);
         }
 
         ArrayList<MyBundle> units =
                 subsectionInfo.getArrayList(RequestConstants.UNIT_LIST);
 
         unitList.removeAllViews();
-        if(units!=null)
+        if(units!=null){
+            Log.i(TAG, "setInfo: "+units.size());
             for(MyBundle unit: units){
                 TextView unitText = new TextView(getContext());
                 unitText.setText("Unit level: " + unit.getInt(RequestConstants.LEVEL));
                 unitList.addView(unitText);
             }
+        }
+        else {
+            TextView unitText = new TextView(getContext());
+            unitText.setText("No Units");
+            unitList.addView(unitText);
+        }
 
 
     }

@@ -1,6 +1,4 @@
-package zhaos.spaceagegame.game.resources;
-
-import android.os.Bundle;
+package zhaos.spaceagegame.util;
 
 /**
  * Created by kodomazer on 10/22/2016.

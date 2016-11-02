@@ -1,6 +1,7 @@
 package zhaos.spaceagegame.game;
 
 import android.graphics.Point;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,16 +12,17 @@ import zhaos.spaceagegame.util.HHexDirection;
  * Created by kodomazer on 9/26/2016.
  */
 class SpaceGameHexSubsection {
-    //Tile that the subsection belongs to.
+    private static final String TAG = "Hex Subsection";
+    //Hex Tile that the subsection belongs to.
     protected SpaceGameHexTile parent;
 
 
     //The Part of the tile the subsection is part of
     protected HHexDirection position;
 
-    private Collection<Unit> occupants;
-    private Collection<SpaceGameConstructionPod> pods;
-    private int affiliation;
+    protected Collection<Unit> occupants;
+    protected Collection<SpaceGameConstructionPod> pods;
+    protected int affiliation;
     private int[] influenceLevels;
 
     SpaceGameHexSubsection(SpaceGameHexTile parent, HHexDirection spot){
@@ -46,27 +48,29 @@ class SpaceGameHexSubsection {
         if(e.getAffiliation()==affiliation){
             occupants.add(e);
             e.getSubsection().moveOut(e);
+            SpaceGameConstructionPod pod = e.constructionPod();
+            if(pod!=null){
+                e.getSubsection().moveOut(pod);
+                pod.setPosition(parent,this);
+            }
             e.setSubsection(parent,this);
             return true;
         }
         return false;
     }
-    public boolean moveIn(Unit e,SpaceGameConstructionPod c){
-        if(e.getAffiliation()==affiliation){
 
-            occupants.add(e);
-            pods.add(c);
-            return true;
+    public boolean moveOut(Unit e){
+        boolean success = occupants.remove(e);
+
+        if(occupants.size()==0){
+            affiliation = 0;
         }
-        return false;
+
+        return success;
     }
 
-    boolean moveOut(Unit e){
-        return occupants.remove(e);
-    }
-
-    boolean moveOut(Unit e,SpaceGameConstructionPod c){
-        return occupants.remove(e) && pods.remove(c);
+    public boolean moveOut(SpaceGameConstructionPod c){
+        return pods.remove(c);
     }
 
 
@@ -120,4 +124,11 @@ class SpaceGameHexSubsection {
     SpaceGameHexTile getParent() {
         return parent;
     }
+
+    public Unit[] getUnits() {
+        Unit[] units = new Unit[occupants.size()];
+        occupants.toArray(units);
+        return units;
+    }
+
 }

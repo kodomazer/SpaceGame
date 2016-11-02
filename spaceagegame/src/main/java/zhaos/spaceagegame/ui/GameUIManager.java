@@ -17,9 +17,9 @@ import java.util.Map;
 import zhaos.spaceagegame.R;
 import zhaos.spaceagegame.game.SpaceGameLocal;
 import zhaos.spaceagegame.game.SpaceGameHexTile;
-import zhaos.spaceagegame.game.resources.MyBundle;
-import zhaos.spaceagegame.game.resources.Request;
-import zhaos.spaceagegame.game.resources.RequestConstants;
+import zhaos.spaceagegame.util.MyBundle;
+import zhaos.spaceagegame.util.Request;
+import zhaos.spaceagegame.util.RequestConstants;
 import zhaos.spaceagegame.util.FloatPoint;
 import zhaos.spaceagegame.util.HHexDirection;
 
@@ -153,7 +153,7 @@ class GameUIManager implements Runnable {
         mainView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onHexClicked();
+                onMapHexClicked();
 
             }
         });
@@ -213,7 +213,7 @@ class GameUIManager implements Runnable {
         return point;
     }
 
-    private void onHexClicked() {
+    private void onMapHexClicked() {
         Point clickPoint = findClickedHex(xPosition, yPosition);
         infoText[0].setText(clickPoint.toString());
         HexGUI clicked = GUIGrid.get(clickPoint);
@@ -227,12 +227,12 @@ class GameUIManager implements Runnable {
         game.sendRequest(new Request(request, new Request.RequestCallback() {
             @Override
             public void onComplete(MyBundle info) {
-                handleHexInfo(info);
+                handleTextHexInfo(info);
             }
         }));
     }
 
-    private void handleHexInfo(MyBundle info){
+    private void handleTextHexInfo(MyBundle info){
         if (info == null) return;
         infoFrame.removeAllViews();
         infoFrame.addView(hexInfo);
@@ -267,12 +267,12 @@ class GameUIManager implements Runnable {
         game.sendRequest(new Request(request, new Request.RequestCallback() {
             @Override
             public void onComplete(MyBundle info) {
-                handleSubsectionInfo(info);
+                subsectionInfoCallback(info);
             }
         }));
     }
 
-    private void handleSubsectionInfo(MyBundle info) {
+    private void subsectionInfoCallback(MyBundle info) {
         if(info==null)return;
         subsectionInfo.setInfo(info);
         infoFrame.removeAllViews();

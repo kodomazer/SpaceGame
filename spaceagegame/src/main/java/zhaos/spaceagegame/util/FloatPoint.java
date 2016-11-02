@@ -24,14 +24,7 @@ public class FloatPoint{
         this.x = deepCopy.x;
         this.y = deepCopy.y;
     }
-    public FloatPoint(IntPoint deepCopy){
-        this.x = deepCopy.x;
-        this.y = deepCopy.y;
-    }
-    public FloatPoint(IntPoint deepCopy,float scale){
-        this.x = deepCopy.x*scale;
-        this.y = deepCopy.y*scale;
-    }
+
     public FloatPoint PiecewiseMultiply(FloatPoint scale){
         FloatPoint copy= new FloatPoint();
         copy.x = x*scale.x;
@@ -39,8 +32,8 @@ public class FloatPoint{
         return copy;
     }
 
-    public IntPoint toIntPoint(){
-        IntPoint i = new IntPoint();
+    public Point toPoint(){
+        Point i = new Point();
         i.x = (int) this.x;
         i.y = (int) y;
         return i;
