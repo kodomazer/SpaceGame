@@ -1,8 +1,10 @@
 package zhaos.spaceagegame.ui;
 
+import android.content.Context;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -289,4 +291,104 @@ class GameUIManager implements Runnable {
         }
         return visiblePosition;
     }
+    public class SubsectionInfoWrapper extends LinearLayout {
+        private static final String TAG = "Subsection Text Info";
+        //City Section
+        TextView cityHeader;
+        TextView cityInfo;
+        CityInfoWrapper cityInfoWrapper;
+
+        //Unit Section
+        TextView unitHeader;
+        LinearLayout unitList;
+
+
+        public SubsectionInfoWrapper(Context context) {
+            super(context);
+            setOrientation(VERTICAL);
+            cityHeader = new TextView(context);
+            cityHeader.setText("Space Station:");
+            addView(cityHeader);
+            cityInfo = new TextView(context);
+            addView(cityInfo);
+            unitHeader = new TextView(context);
+            unitHeader.setText("Units:");
+            addView(unitHeader);
+            unitList = new LinearLayout(context);
+            addView(unitList);
+        }
+
+        public void setInfo(MyBundle subsectionInfo){
+            MyBundle spaceStation = subsectionInfo.getBundle(RequestConstants.SPACE_STATION_INFO);
+            if(subsectionInfo.getSubsection(RequestConstants.SUBSECTION)== HHexDirection.CENTER) {
+                cityHeader.setVisibility(VISIBLE);
+                cityInfo.setVisibility(VISIBLE);
+                if (spaceStation == null) {
+                    cityInfo.setText("No City");
+                } else {
+                    final int id = spaceStation.getInt(RequestConstants.SPACE_STATION_ID);
+                    int level = spaceStation.getInt(RequestConstants.LEVEL);
+                    cityInfo.setText("City level: " + level);
+                    cityInfo.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            extraCityInfo(id);
+                        }
+                    });
+                }
+            }
+            else{
+                cityHeader.setVisibility(GONE);
+                cityInfo.setVisibility(GONE);
+            }
+
+            ArrayList<MyBundle> units =
+                    subsectionInfo.getArrayList(RequestConstants.UNIT_LIST);
+
+            unitList.removeAllViews();
+            if(units!=null){
+                Log.i(TAG, "setInfo: "+units.size());
+                for(MyBundle unit: units){
+                    final int id = unit.getInt(RequestConstants.UNIT_ID);
+                    TextView unitText = new TextView(getContext());
+                    unitText.setText("Unit level: " + unit.getInt(RequestConstants.LEVEL));
+                    unitText.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            extraUnitInfo(id);
+                        }
+                    });
+                    unitList.addView(unitText);
+                }
+            }
+            else {
+                TextView unitText = new TextView(getContext());
+                unitText.setText("No Units");
+                unitList.addView(unitText);
+            }
+
+
+        }
+
+        private void extraUnitInfo(int id) {
+            MyBundle request = new MyBundle();
+            game.sendRequest(new Request(request, new Request.RequestCallback() {
+                @Override
+                public void onComplete(MyBundle info) {
+
+                }
+            }));
+            //TODO
+        }
+
+        private void extraCityInfo(int id) {
+            //TODO
+        }
+
+
+        private class CityInfoWrapper {
+        }
+    }
+
+
 }
