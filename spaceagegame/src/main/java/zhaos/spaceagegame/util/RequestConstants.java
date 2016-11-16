@@ -31,9 +31,16 @@ public class RequestConstants {
     public static final String SUBSECTION_LIST = "subsections";
     public static final String SPACE_STATION_INFO = "space station info";
 
-    //Unit Info
+    //City Info
     public static final String UNIT_LIST = "units";
     public static final String CITY_INFO = "city info";
+
+    //Unit Info
+    public final static String UNIT_STATUS_FLAGS = "unit status";
+        //status flags
+        public final static int MOVEABLE    =   0b0001;
+        public final static int CAN_ATTACK  =   0b0010;
+        public final static int SELECTED    =   0b0100;
 
     //Game Info
     public final static int GAME_INFO       =   0x0000;

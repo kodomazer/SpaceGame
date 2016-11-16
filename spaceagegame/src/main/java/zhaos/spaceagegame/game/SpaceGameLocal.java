@@ -230,6 +230,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         info.putPoint(RequestConstants.ORIGIN_HEX, selectedUnit.getHexTile().getPosition());
         info.putInt(RequestConstants.LEVEL, selectedUnit.getLevel());
         info.putInt(RequestConstants.FACTION_ID, selectedUnit.getAffiliation());
+        info.putInt(RequestConstants.UNIT_ID, unitID);
         actionCompleted(callback, info, true);
     }
 

@@ -2,6 +2,7 @@ package zhaos.spaceagegame.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Point;
 import android.support.v4.util.Pools;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
@@ -24,13 +25,14 @@ public class SubsectionGroup extends RelativeLayout {
 
      private static final Pools.SynchronizedPool<SubsectionGroup> sPool =
              new Pools.SynchronizedPool<SubsectionGroup>(50);
+    private Point hexPosition;
 
-     public static SubsectionGroup obtain() {
+    public static SubsectionGroup obtain() {
         SubsectionGroup instance = sPool.acquire();
          return (instance != null) ? instance : new SubsectionGroup(context);
     }
 
-public void recycle() {
+    public void recycle() {
           // Clear state if needed.
           sPool.release(this);
     }
@@ -75,5 +77,9 @@ public void recycle() {
     public void removed(){
         drawn = false;
         removeAllViews();
+    }
+
+    public Point getHexPosition() {
+        return hexPosition;
     }
 }

@@ -1,12 +1,14 @@
 package zhaos.spaceagegame.ui;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -45,6 +47,7 @@ class GameUIManager implements Runnable {
     private float relativeHalfHeight;
 
     private HexGUI lastClick;
+    private SubsectionGroup subsectionGroup;
 
     private int xPosition;
     private int yPosition;
@@ -57,6 +60,8 @@ class GameUIManager implements Runnable {
     private FrameLayout infoFrame;
     private SubsectionInfoWrapper subsectionInfo;
     private LinearLayout hexInfo;
+
+    private int selectingSubsection;
 
 
 
@@ -80,6 +85,7 @@ class GameUIManager implements Runnable {
         infoFrame = (FrameLayout)parent.findViewById(R.id.InfoView);
         subsectionInfo = new SubsectionInfoWrapper(parent);
         hexInfo = (LinearLayout) parent.findViewById(R.id.hexInfoBase);
+        selectingSubsection = 0;
 
         GUIGrid = new HashMap<>();
 
@@ -201,11 +207,13 @@ class GameUIManager implements Runnable {
 
         if(adjustedPosition.x<relativeAngleWidth){
             if(top){
-                if(adjustedPosition.y<(relativeHalfHeight*(1-(adjustedPosition.x)/relativeAngleWidth)))
+                if(adjustedPosition.y<(relativeHalfHeight*
+                        (1-(adjustedPosition.x)/relativeAngleWidth)))
                     point.offset(-1,point.x%2==0?0:-1);
             }
             else{
-                if(adjustedPosition.y>(relativeHalfHeight*((adjustedPosition.x)/relativeAngleWidth)))
+                if(adjustedPosition.y>(relativeHalfHeight*
+                        ((adjustedPosition.x)/relativeAngleWidth)))
                     point.offset(-1,point.x%2==0?1:0);
 
             }
@@ -215,8 +223,84 @@ class GameUIManager implements Runnable {
         return point;
     }
 
+    private HHexDirection findClickedSubsection
+            (int xPosition, int yPosition, Point clickPoint) {
+        HHexDirection direction = null;
+        final Point CENTER = new Point(
+                (int)(relativeAngleWidth+relativeCenterWidth/2),
+                (int)relativeHalfHeight);
+        Point relativePosition = new Point((int)(xPosition
+                -clickPoint.x*(relativeAngleWidth+relativeCenterWidth)),
+                (int)(yPosition - (clickPoint.y*2-(xPosition%2==1?0:1))
+                        *relativeHalfHeight));
+        boolean top = true;
+        boolean left = true;
+        boolean topSide = false;
+        if(relativePosition.y>CENTER.y){
+            top = false;
+            relativePosition.y-=CENTER.y;
+        }
+        //Left or Right
+        if(relativePosition.x>CENTER.x){
+            left = false;
+            relativePosition.x-=CENTER.x;
+        }
+        else{
+            relativePosition.x-=relativeAngleWidth;
+        }
+        if(left^top){
+            topSide = relativePosition.y<
+                    ((1-((float)relativePosition.x/relativeCenterWidth*2))
+                    *relativeHalfHeight);
+        }
+        else{
+            topSide = relativePosition.y<
+                    (relativePosition.x/relativeCenterWidth*2
+                    *relativeHalfHeight);
+        }
+        switch((top?1:0)*0b100+(left?1:0)*0b010+(topSide?1:0)){
+            case 0b000:
+            case 0b011:
+                direction = HHexDirection.Down;
+                break;
+            case 0b001:
+                direction = HHexDirection.DownRight;
+                break;
+            case 0b010:
+                direction = HHexDirection.DownLeft;
+                break;
+            case 0b100:
+            case 0b111:
+                direction = HHexDirection.Up;
+                break;
+            case 0b101:
+                direction = HHexDirection.UpRight;
+                break;
+            case 0b110:
+                direction = HHexDirection.UpLeft;
+                break;
+            default:
+                direction = HHexDirection.CENTER;
+        }
+        return direction;
+    }
+
     private void onMapHexClicked() {
         Point clickPoint = findClickedHex(xPosition, yPosition);
+        HHexDirection subsection = findClickedSubsection(xPosition,yPosition,clickPoint);
+
+//        if(clickPoint.equals(subsectionGroup.getHexPosition()))
+
+        if(selectingSubsection!=0){
+            MyBundle request = new MyBundle();
+            request.putInt(RequestConstants.INSTRUCTION,selectingSubsection);
+
+            request.putPoint(RequestConstants.DESTINATION_HEX,clickPoint);
+            request.putSubsection(RequestConstants.DESTINATION_SUBSECTION,subsection);
+
+            selectingSubsection = 0;
+        }
+
         infoText[0].setText(clickPoint.toString());
         HexGUI clicked = GUIGrid.get(clickPoint);
         if (clicked == null) return;
@@ -233,6 +317,7 @@ class GameUIManager implements Runnable {
             }
         }));
     }
+
 
     private void handleTextHexInfo(MyBundle info){
         if (info == null) return;
@@ -301,6 +386,7 @@ class GameUIManager implements Runnable {
         //Unit Section
         TextView unitHeader;
         LinearLayout unitList;
+        UnitInfoWrapper unitInfoWrapper;
 
 
         public SubsectionInfoWrapper(Context context) {
@@ -348,14 +434,16 @@ class GameUIManager implements Runnable {
             unitList.removeAllViews();
             if(units!=null){
                 Log.i(TAG, "setInfo: "+units.size());
+                int index = 0;
                 for(MyBundle unit: units){
                     final int id = unit.getInt(RequestConstants.UNIT_ID);
+                    final int in = index;
                     TextView unitText = new TextView(getContext());
                     unitText.setText("Unit level: " + unit.getInt(RequestConstants.LEVEL));
                     unitText.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            extraUnitInfo(id);
+                            extraUnitInfo(id,in,v);
                         }
                     });
                     unitList.addView(unitText);
@@ -370,23 +458,86 @@ class GameUIManager implements Runnable {
 
         }
 
-        private void extraUnitInfo(int id) {
+        private void extraUnitInfo(int id,final int index,final View view) {
             MyBundle request = new MyBundle();
+            request.putInt(RequestConstants.INSTRUCTION,RequestConstants.UNIT_INFO);
+            request.putInt(RequestConstants.UNIT_ID,id);
             game.sendRequest(new Request(request, new Request.RequestCallback() {
                 @Override
                 public void onComplete(MyBundle info) {
-
+                    unitList.removeView(unitInfoWrapper);
+                    unitInfoWrapper.setView(view);
+                    unitInfoWrapper.updateInfo(info);
+                    unitList.addView(unitInfoWrapper,index+1);
                 }
             }));
-            //TODO
         }
 
         private void extraCityInfo(int id) {
             //TODO
         }
 
+        private class UnitInfoWrapper extends LinearLayout{
+            Button select;
+            Button move;
+            Button attack;
+            private View view;
 
-        private class CityInfoWrapper {
+            public UnitInfoWrapper(Context context) {
+                super(context);
+                select = new Button(context);
+                select.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        infoFrame.setVisibility(GONE);
+                        selectingSubsection = RequestConstants.UNIT_ATTACK;
+
+                    }
+                });
+            }
+
+
+            public void updateInfo(MyBundle info) {
+                int status = info.getInt(RequestConstants.UNIT_STATUS_FLAGS);
+                if((status & RequestConstants.MOVEABLE) != 0){
+                    move.setVisibility(VISIBLE);
+                }
+                else{
+                    move.setVisibility(GONE);
+                }
+                if((status & RequestConstants.CAN_ATTACK) != 0){
+                    attack.setVisibility(VISIBLE);
+                }
+                else{
+                    attack.setVisibility(GONE);
+                }
+                if((status & RequestConstants.CAN_ATTACK) != 0){
+                    select.setVisibility(VISIBLE);
+                    select.setText("Select");
+                }
+                else{
+                    select.setVisibility(GONE);
+                }
+                if((status & RequestConstants.SELECTED) != 0){
+                    view.setBackgroundColor(Color.argb(100,100,100,100));
+                    select.setVisibility(VISIBLE);
+                    select.setText("Deselect");
+
+                }
+                else{
+                    view.setBackgroundColor(Color.argb(0,255,255,255));
+                }
+            }
+
+            void setView(View view){
+                this.view = view;
+            }
+        }
+
+        private class CityInfoWrapper extends LinearLayout {
+            public CityInfoWrapper(Context context) {
+                super(context);
+            }
         }
     }
 

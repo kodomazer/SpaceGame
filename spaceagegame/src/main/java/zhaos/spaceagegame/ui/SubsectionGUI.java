@@ -2,6 +2,7 @@ package zhaos.spaceagegame.ui;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.view.View;
 import android.widget.ImageView;
@@ -78,7 +79,6 @@ public class SubsectionGUI extends ImageView implements View.OnClickListener{
         if(thisSubsection.getInt(RequestConstants.FACTION_ID)==-1)
             setAsBattle();
     }
-
 
     public void setAsMoveable() {
         setColorFilter(Color.rgb(100, 255, 100));
