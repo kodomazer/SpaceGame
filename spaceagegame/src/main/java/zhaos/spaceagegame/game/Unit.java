@@ -36,6 +36,7 @@ class Unit {
         hexTile = s.getHexTile();
         subsection = hexTile.getSubsection(HHexDirection.CENTER);
         ((SpaceGameCenterSubsection)subsection).addUnit(this);
+        actionPoints=3;
     }
 
     public void mainResetPhase(){
@@ -45,6 +46,10 @@ class Unit {
 
     void combatResetPhase(){
         actionPoints = 1;
+    }
+
+    public boolean canMove(){
+        return actionPoints>0;
     }
 
     public int remainingActions(){

@@ -73,6 +73,8 @@ class GameUIManager implements Runnable {
         mainHandler = new Handler(parent.getMainLooper());
         densityPixel = parent.densityPixel;
         mainView =(RelativeLayout) parent.findViewById(R.id.MainView);
+
+        //initialize infoText array
         infoText = new TextView[7];
         infoText[0]=(TextView) parent.findViewById(R.id.Center);
         infoText[1]=(TextView) parent.findViewById(R.id.Top);
@@ -82,12 +84,15 @@ class GameUIManager implements Runnable {
         infoText[5]=(TextView) parent.findViewById(R.id.BottomLeft);
         infoText[6]=(TextView) parent.findViewById(R.id.TopLeft);
 
+        //initialize text info
         infoFrame = (FrameLayout)parent.findViewById(R.id.InfoView);
         subsectionInfo = new SubsectionInfoWrapper(parent);
         hexInfo = (LinearLayout) parent.findViewById(R.id.hexInfoBase);
+
         selectingSubsection = 0;
 
         GUIGrid = new HashMap<>();
+
 
         relativeAngleWidth = ANGLEWIDTH * densityPixel.x;
         relativeCenterWidth = CENTERWIDTH * densityPixel.x;
@@ -117,10 +122,14 @@ class GameUIManager implements Runnable {
         for(SpaceGameHexTile t:game.getTiles()) {
             position = t.getPosition();
             pixelPosition = topLeftCornerPosition(position);
-            gui = new HexGUI(mainView,
+            gui = new HexGUI(
+                    mainView,
                     t,
-                    new Point((int) pixelPosition.x, (int) pixelPosition.y),
-                    new Point((int) (2 * relativeAngleWidth + relativeCenterWidth),
+                    new Point(
+                            (int) pixelPosition.x,
+                            (int) pixelPosition.y),
+                    new Point(
+                            (int) (2 * relativeAngleWidth + relativeCenterWidth),
                             (int) (2 * relativeHalfHeight)));
             GUIGrid.put(position, gui);
 
@@ -131,13 +140,13 @@ class GameUIManager implements Runnable {
 
                     infoFrame.removeAllViews();
                     infoFrame.addView(hexInfo);
-
-                    parent.setInfoText(((HexGUI)v).hexTile);
                     if(lastClick!=null)
                     lastClick.resetActive();
                     lastClick = ((HexGUI) v);
                     lastClick.setActive();
+                    parent.setInfoText(lastClick.hexTile);
                     String info;
+
                     for(int i = 0;i<7;i++){
                         info = HHexDirection.toString(i);
                         infoText[i].setText(info);
@@ -192,7 +201,8 @@ class GameUIManager implements Runnable {
                 (int)(y/(relativeHalfHeight)));
         if(point.y%2==0)
             top = true;
-        Point adjustedPosition=new Point(x-(int)(point.x*(relativeAngleWidth+relativeCenterWidth)),
+        Point adjustedPosition= new Point(
+                x-(int)(point.x*(relativeAngleWidth+relativeCenterWidth)),
                 y-(int)(point.y*(relativeHalfHeight)));
         if(point.x%2==0) {
             point.y -= 1;
@@ -299,23 +309,32 @@ class GameUIManager implements Runnable {
             request.putSubsection(RequestConstants.DESTINATION_SUBSECTION,subsection);
 
             selectingSubsection = 0;
+            infoFrame.setVisibility(View.VISIBLE);
         }
+        else {
+            //debug string
+            infoText[0].setText(clickPoint.toString());
 
-        infoText[0].setText(clickPoint.toString());
-        HexGUI clicked = GUIGrid.get(clickPoint);
-        if (clicked == null) return;
+            HexGUI clicked = GUIGrid.get(clickPoint);
+            if (clicked == null) return;
+            clicked.performClick();
 
-        clicked.performClick();
-        MyBundle request = new MyBundle();
-        request.putInt(RequestConstants.INSTRUCTION, RequestConstants.HEX_INFO);
-        request.putPoint(RequestConstants.ORIGIN_HEX, clickPoint);
-        //Function to build UI once the info is returned
-        game.sendRequest(new Request(request, new Request.RequestCallback() {
-            @Override
-            public void onComplete(MyBundle info) {
-                handleTextHexInfo(info);
-            }
-        }));
+            //Build Request
+            MyBundle request = new MyBundle();
+            request.putInt(
+                    RequestConstants.INSTRUCTION,
+                    RequestConstants.HEX_INFO);
+            request.putPoint(
+                    RequestConstants.ORIGIN_HEX,
+                    clickPoint);
+            //Function to build UI once the info is returned
+            game.sendRequest(new Request(request, new Request.RequestCallback() {
+                @Override
+                public void onComplete(MyBundle info) {
+                    handleTextHexInfo(info);
+                }
+            }));
+        }
     }
 
 
@@ -397,16 +416,25 @@ class GameUIManager implements Runnable {
             addView(cityHeader);
             cityInfo = new TextView(context);
             addView(cityInfo);
+
+            //Units
             unitHeader = new TextView(context);
             unitHeader.setText("Units:");
             addView(unitHeader);
+
             unitList = new LinearLayout(context);
             addView(unitList);
+
+            //Unit details
+            unitInfoWrapper = new UnitInfoWrapper(context);
         }
 
         public void setInfo(MyBundle subsectionInfo){
-            MyBundle spaceStation = subsectionInfo.getBundle(RequestConstants.SPACE_STATION_INFO);
-            if(subsectionInfo.getSubsection(RequestConstants.SUBSECTION)== HHexDirection.CENTER) {
+            MyBundle spaceStation =
+                    subsectionInfo.getBundle(RequestConstants.SPACE_STATION_INFO);
+
+            if(subsectionInfo
+                    .getSubsection(RequestConstants.SUBSECTION)== HHexDirection.CENTER) {
                 cityHeader.setVisibility(VISIBLE);
                 cityInfo.setVisibility(VISIBLE);
                 if (spaceStation == null) {
@@ -432,7 +460,7 @@ class GameUIManager implements Runnable {
                     subsectionInfo.getArrayList(RequestConstants.UNIT_LIST);
 
             unitList.removeAllViews();
-            if(units!=null){
+            if(units!=null||units.size()!=0){
                 Log.i(TAG, "setInfo: "+units.size());
                 int index = 0;
                 for(MyBundle unit: units){
@@ -468,7 +496,7 @@ class GameUIManager implements Runnable {
                     unitList.removeView(unitInfoWrapper);
                     unitInfoWrapper.setView(view);
                     unitInfoWrapper.updateInfo(info);
-                    unitList.addView(unitInfoWrapper,index+1);
+                    unitList.addView(unitInfoWrapper);
                 }
             }));
         }
@@ -489,11 +517,30 @@ class GameUIManager implements Runnable {
                 select.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        //TODO send request to select this unit
+                    }
+                });
+                move = new Button(context);
+                move.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        infoFrame.setVisibility(GONE);
+                        selectingSubsection = RequestConstants.UNIT_MOVE;
+
+                    }
+                });
+                attack = new Button(context);
+                attack.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
                         infoFrame.setVisibility(GONE);
                         selectingSubsection = RequestConstants.UNIT_ATTACK;
 
                     }
                 });
+                addView(select);
+                addView(move);
+                addView(attack);
             }
 
 
@@ -507,15 +554,11 @@ class GameUIManager implements Runnable {
                 }
                 if((status & RequestConstants.CAN_ATTACK) != 0){
                     attack.setVisibility(VISIBLE);
-                }
-                else{
-                    attack.setVisibility(GONE);
-                }
-                if((status & RequestConstants.CAN_ATTACK) != 0){
                     select.setVisibility(VISIBLE);
                     select.setText("Select");
                 }
                 else{
+                    attack.setVisibility(GONE);
                     select.setVisibility(GONE);
                 }
                 if((status & RequestConstants.SELECTED) != 0){

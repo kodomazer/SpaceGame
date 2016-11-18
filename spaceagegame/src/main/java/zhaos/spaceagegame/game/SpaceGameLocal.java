@@ -35,6 +35,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
             //do Nothing
         }
     };
+    private Unit[] selected = new Unit[3];
 
     public static SpaceGameLocal getInstance() {
         if (instance == null) instance = new SpaceGameLocal();
@@ -227,6 +228,19 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
             return;
         }
 
+        boolean isSelected = false;
+        for (Unit aSelected : selected) {
+            if (aSelected == selectedUnit) {
+                isSelected = true;
+                break;
+            }
+        }
+        info.putInt(RequestConstants.UNIT_STATUS_FLAGS,
+                (isSelected?RequestConstants.SELECTED:0)|
+                        //TODO actual checks for movement and battle
+                        (selectedUnit.canMove()?RequestConstants.MOVEABLE|
+                        RequestConstants.CAN_ATTACK:0));
+
         info.putPoint(RequestConstants.ORIGIN_HEX, selectedUnit.getHexTile().getPosition());
         info.putInt(RequestConstants.LEVEL, selectedUnit.getLevel());
         info.putInt(RequestConstants.FACTION_ID, selectedUnit.getAffiliation());
@@ -280,8 +294,11 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         if(direction == HHexDirection.CENTER){
             MyBundle cityInfo = new MyBundle();
             SpaceStation city = ((SpaceGameCenterSubsection)subsection).getCity();
-            cityInfo.putInt(RequestConstants.LEVEL,city.getLevel());
-            bundle.putBundle(RequestConstants.SPACE_STATION_INFO,cityInfo);
+            if(city!=null){
+                cityInfo.putInt(RequestConstants.SPACE_STATION_ID,city.getID());
+                cityInfo.putInt(RequestConstants.LEVEL,city.getLevel());
+                bundle.putBundle(RequestConstants.SPACE_STATION_INFO,cityInfo);
+            }
         }
 
         //Handle Units
