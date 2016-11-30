@@ -122,15 +122,8 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
     @Override
     protected Void doInBackground(Void... params) {
         //testing init
-        SpaceGameHexTile hex = tileMap.get(new Point(2,1));
-        SpaceGameCenterSubsection subsection =
-                (SpaceGameCenterSubsection)hex.getSubsection(HHexDirection.CENTER);
-        SpaceStation city = new SpaceStation(1,hex,lastCityID);
-        subsection.buildCity(city);
-        cityList.put(lastCityID,city);
-        lastCityID+=1;
-        Unit unit = new Unit(subsection.getCity());
-        unitList.put(unit.getID(), unit);
+        initializeFactionStart(1,new Point(2,1));
+        //end testing
 
         running = true;
         while (true) {
@@ -400,6 +393,16 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         return (SpaceGameHexSubsection[]) a.toArray();
     }
 
+    public void registerUnit(Unit unit){
+        unitList.put(unit.getID(),unit);
+    }
+
+    public SpaceStation registerSpaceStation(int faction,SpaceGameHexTile hexTile){
+        SpaceStation spaceStation = new SpaceStation(faction,hexTile,lastCityID);
+        lastCityID++;
+        cityList.put(spaceStation.getID(),spaceStation);
+        return spaceStation;
+    }
 
     //methods for Team Controller to give actions
     public void sendRequest(Request gameAction) {
@@ -523,7 +526,17 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
     }
 
     private void initializeFactionStart(int faction,Point startingHex){
-        tileMap.get(startingHex).placeCity(faction,3);
+        SpaceGameHexTile start =tileMap.get(startingHex);
+        if(start == null) return;
+        start.placeCity(registerSpaceStation(faction,start));
+        SpaceStation city =
+        ((SpaceGameCenterSubsection)start.getSubsection(HHexDirection.CENTER))
+                .getCity();
+        city.createUnit();
+        city.createUnit();
+        city.createUnit();
+        city.upgrade();
+        city.upgrade();
 
     }
 

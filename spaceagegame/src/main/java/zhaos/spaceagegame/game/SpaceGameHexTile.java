@@ -81,7 +81,8 @@ public class SpaceGameHexTile {
         return subsections;
     }
 
-    public void placeCity(int faction, int level) {
-
+    public void placeCity(SpaceStation station) {
+        ((SpaceGameCenterSubsection)subsections[6]).placeCity(station);
     }
+
 }

@@ -33,7 +33,7 @@ public class RequestConstants {
 
     //City Info
     public static final String UNIT_LIST = "units";
-    public static final String CITY_INFO = "city info";
+    public static final String CITY_INFORMATION = "city info";
 
     //Unit Info
     public final static String UNIT_STATUS_FLAGS = "unit status";
@@ -54,4 +54,10 @@ public class RequestConstants {
     public final static int UNIT_MOVE       =   0x0101;
     public final static int UNIT_SELECT     =   0x0102;
     public final static int UNIT_ATTACK     =   0x0103;
+
+    //City Actions
+    public final static int CITY_INFO       =   0x0200;
+
+    //Construction Pods
+    public final static int CON_POD_INFO    =   0x0300;
 }

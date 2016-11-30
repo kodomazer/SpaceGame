@@ -9,7 +9,9 @@ import zhaos.spaceagegame.util.HHexDirection;
 //Base class for anything that can take an action during the game
 
 class Unit {
+
     private static int lastID = 1;
+
     //0 for neutral anything else is on a team
     private int factionNumber;
 

@@ -39,15 +39,23 @@ class SpaceGameHexSubsection {
 
     boolean moveIn(Unit e){
         boolean neighbor=false;
-        for(SpaceGameHexSubsection subsections:getNeighbors()){
-            if(e.getSubsection()==this)
-                neighbor = true;
-        }
+        SpaceGameHexSubsection origin = e.getSubsection();
+        if(origin!=null)
+            for(SpaceGameHexSubsection subsections:getNeighbors()){
+                if(origin==subsections)
+                    neighbor = true;
+            }
+        else
+            neighbor = true;
+
         if(!neighbor)return false;
+        if(affiliation==-1)
+            affiliation = e.getAffiliation();
 
         if(e.getAffiliation()==affiliation){
             occupants.add(e);
-            e.getSubsection().moveOut(e);
+            if(origin!=null)
+                origin.moveOut(e);
             SpaceGameConstructionPod pod = e.constructionPod();
             if(pod!=null){
                 e.getSubsection().moveOut(pod);

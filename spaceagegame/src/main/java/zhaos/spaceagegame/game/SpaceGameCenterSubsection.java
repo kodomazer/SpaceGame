@@ -33,7 +33,7 @@ public class SpaceGameCenterSubsection extends SpaceGameHexSubsection {
         return station;
     }
 
-    public void buildCity(SpaceStation spaceStation) {
+    public void placeCity(SpaceStation spaceStation) {
         station = spaceStation;
     }
 

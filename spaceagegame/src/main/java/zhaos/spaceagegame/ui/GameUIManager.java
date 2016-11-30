@@ -423,6 +423,7 @@ class GameUIManager implements Runnable {
             addView(unitHeader);
 
             unitList = new LinearLayout(context);
+            unitList.setOrientation(VERTICAL);
             addView(unitList);
 
             //Unit details
@@ -460,7 +461,7 @@ class GameUIManager implements Runnable {
                     subsectionInfo.getArrayList(RequestConstants.UNIT_LIST);
 
             unitList.removeAllViews();
-            if(units!=null||units.size()!=0){
+            if(units!=null&&units.size()!=0){
                 Log.i(TAG, "setInfo: "+units.size());
                 int index = 0;
                 for(MyBundle unit: units){
@@ -520,6 +521,7 @@ class GameUIManager implements Runnable {
                         //TODO send request to select this unit
                     }
                 });
+                select.setText("Select");
                 move = new Button(context);
                 move.setOnClickListener(new OnClickListener() {
                     @Override
@@ -529,6 +531,7 @@ class GameUIManager implements Runnable {
 
                     }
                 });
+                move.setText("Move");
                 attack = new Button(context);
                 attack.setOnClickListener(new OnClickListener() {
                     @Override
@@ -538,6 +541,7 @@ class GameUIManager implements Runnable {
 
                     }
                 });
+                attack.setText("Attack");
                 addView(select);
                 addView(move);
                 addView(attack);
