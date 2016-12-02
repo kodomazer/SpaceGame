@@ -42,6 +42,7 @@ public class RequestConstants {
         public final static int CAN_ATTACK  =   0b0010;
         public final static int SELECTED    =   0b0100;
 
+
     //Game Info
     public final static int GAME_INFO       =   0x0000;
 
@@ -57,6 +58,8 @@ public class RequestConstants {
 
     //City Actions
     public final static int CITY_INFO       =   0x0200;
+    public final static int CITY_PROD_UNIT  =   0x0201;
+    public final static int CITY_PROD_POD   =   0x0202;
 
     //Construction Pods
     public final static int CON_POD_INFO    =   0x0300;

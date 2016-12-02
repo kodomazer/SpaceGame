@@ -140,18 +140,25 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
                 case RequestConstants.GAME_INFO:
                     getGameInfo(action);
                     break;
-                case RequestConstants.UNIT_INFO:
-                    getUnitInfo(action);
-                    break;
                 case RequestConstants.HEX_INFO:
                     getHexInfo(action);
                     break;
                 case RequestConstants.SUBSECTION_INFO:
                     getSubsectionInfo(action);
                     break;
+                case RequestConstants.UNIT_INFO:
+                    getUnitInfo(action);
+                    break;
                 case RequestConstants.UNIT_MOVE:
                     moveUnit(action);
                     break;
+                case RequestConstants.UNIT_SELECT:
+                    unitSelect(action);
+                    break;
+                case RequestConstants.UNIT_ATTACK:
+                    unitAttack(action);
+                    break;
+
                 default:
                     //do nothing
 
@@ -163,6 +170,57 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
 
 
 
+    private void unitAttack(Request action) {
+        MyBundle bundle = action.getThisRequest();
+        Request.RequestCallback callback = action.getCallback();
+        if (callback == null) callback = emptyCallback;
+
+        Point hexPos = bundle.getPoint(RequestConstants.DESTINATION_HEX);
+        HHexDirection subsectionDir = bundle
+                .getSubsection(RequestConstants.DESTINATION_SUBSECTION);
+        SpaceGameHexTile hex = tileMap.get(hexPos);
+        SpaceGameHexSubsection subsection = hex.getSubsection(subsectionDir);
+
+        Unit unit = unitList.get(bundle.getInt(RequestConstants.UNIT_ID));
+        selected[2] = unit;
+        subsection.attack(selected);
+
+
+        actionCompleted(callback, bundle, true);
+
+    }
+
+    private void unitSelect(Request action) {
+        MyBundle bundle = action.getThisRequest();
+        Request.RequestCallback callback = action.getCallback();
+        if (callback == null) callback = emptyCallback;
+
+        Unit currentUnit = unitList.get(bundle.getInt(RequestConstants.UNIT_ID));
+        if(currentUnit==null){
+            actionCompleted(callback, bundle, false);
+            return;
+        }
+        if(selected[0]!=null) {
+            if (selected[0].getHexTile() != currentUnit.getHexTile()) {
+                for (int i = 0; i < 2; i++)
+                    selected[i] = null;
+            }
+            if (selected[0].getSubsection() != currentUnit.getSubsection()) {
+                for (int i = 0; i < 2; i++)
+                    selected[i] = null;
+            }
+        }
+
+
+        for(int i = 0; i<3;i++) {
+            if (selected[i] == null) {
+                selected[i] = currentUnit;
+                break;
+            }
+        }
+
+        actionCompleted(callback, bundle, true);
+    }
     private void moveUnit(Request action) {
         MyBundle bundle = action.getThisRequest();
         Request.RequestCallback callback = action.getCallback();
