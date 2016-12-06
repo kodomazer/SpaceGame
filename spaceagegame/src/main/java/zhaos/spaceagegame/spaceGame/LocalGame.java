@@ -1,4 +1,4 @@
-package zhaos.spaceagegame.game;
+package zhaos.spaceagegame.spaceGame;
 
 
 import android.graphics.Point;
@@ -13,6 +13,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 
+import zhaos.spaceagegame.spaceGame.entity.EntityHandler;
+import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
+import zhaos.spaceagegame.spaceGame.entity.Unit;
+import zhaos.spaceagegame.spaceGame.map.HexTile;
+import zhaos.spaceagegame.spaceGame.map.MapHandler;
+import zhaos.spaceagegame.spaceGame.map.Subsection;
+import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
 import zhaos.spaceagegame.util.MyBundle;
 import zhaos.spaceagegame.util.Request;
 import zhaos.spaceagegame.util.RequestConstants;
@@ -23,10 +30,10 @@ import zhaos.spaceagegame.util.HHexDirection;
  * Created by kodomazer on 9/19/2016.
  * Local hosting of Space Game for single player/hotseat games
  */
-public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
+public class LocalGame extends AsyncTask<Void,Void,Void> {
     private static final String TAG = "Local Space Game";
     //Singleton
-    private static SpaceGameLocal instance;
+    private static LocalGame instance;
     private boolean running;
     private SynchronousQueue<Request> actionQueue;
     private final Request.RequestCallback emptyCallback = new Request.RequestCallback() {
@@ -37,22 +44,17 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
     };
     private Unit[] selected = new Unit[3];
 
-    public static SpaceGameLocal getInstance() {
-        if (instance == null) instance = new SpaceGameLocal();
+    public static LocalGame getInstance() {
+        if (instance == null) instance = new LocalGame();
         return instance;
     }
 
     private Handler mainThread;
 
-    private Map<Integer, Unit> unitList;
+    private EntityHandler entityHandler;
+    private MapHandler mapHandler;
 
-    private int lastPodID;
-    private Map<Integer, SpaceGameConstructionPod> podList;
 
-    private int lastCityID;
-    private Map<Integer, SpaceStation> cityList;
-
-    private Map<Point, SpaceGameHexTile> tileMap;
     private TeamController[] teams;
 
     private int radius;
@@ -98,24 +100,19 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
     }
 
 
-    private SpaceGameLocal() {
+    private LocalGame() {
         //Initialize
         gamePhase = GamePhase.uninitialized;
         initializeDirections();
 
+        entityHandler = new EntityHandler();
+        mapHandler = new MapHandler();
 
         radius = -1;
         teamCount = -1;
 
         actionQueue = new SynchronousQueue<>(true);
 
-        unitList = new ArrayMap<>();
-        lastCityID = 1;
-        cityList = new ArrayMap<>();
-        lastPodID = 1;
-        podList = new ArrayMap<>();
-
-        tileMap = new HashMap<>();
         teams = null;
     }
 
@@ -178,10 +175,10 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         Point hexPos = bundle.getPoint(RequestConstants.DESTINATION_HEX);
         HHexDirection subsectionDir = bundle
                 .getSubsection(RequestConstants.DESTINATION_SUBSECTION);
-        SpaceGameHexTile hex = tileMap.get(hexPos);
-        SpaceGameHexSubsection subsection = hex.getSubsection(subsectionDir);
+        HexTile hex = getHex(hexPos);
+        Subsection subsection = hex.getSubsection(subsectionDir);
 
-        Unit unit = unitList.get(bundle.getInt(RequestConstants.UNIT_ID));
+        Unit unit = getUnit(bundle.getInt(RequestConstants.UNIT_ID));
         selected[2] = unit;
         subsection.attack(selected);
 
@@ -195,7 +192,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         Request.RequestCallback callback = action.getCallback();
         if (callback == null) callback = emptyCallback;
 
-        Unit currentUnit = unitList.get(bundle.getInt(RequestConstants.UNIT_ID));
+        Unit currentUnit = getUnit(bundle.getInt(RequestConstants.UNIT_ID));
         if(currentUnit==null){
             actionCompleted(callback, bundle, false);
             return;
@@ -232,7 +229,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         if (unit.getAffiliation() != faction) return;
 
         selectUnit(unit);
-        SpaceGameHexSubsection[] valid = moves();
+        Subsection[] valid = moves();
         Point destinationHex = bundle.getPoint(RequestConstants.DESTINATION_HEX);
         HHexDirection destinationSubsection
                 = bundle.getSubsection(RequestConstants.DESTINATION_SUBSECTION);
@@ -250,13 +247,12 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         }
 
 
-        for (SpaceGameHexSubsection section : valid) {
+        for (Subsection section : valid) {
             if (section.getParentPosition() == destinationHex) {
                 if (section.getPosition() == destinationSubsection) {
                     if (section.getAffiliation() == faction || section.getAffiliation() == 0) {
                         getHex(originHex).getSubsection(originSubsection).moveOut(unit);
                         section.moveIn(unit);
-                        unit.combatResetPhase();
                         break;
                     }
                 }
@@ -273,7 +269,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
 
         MyBundle bundle = action.getThisRequest();
         int unitID = bundle.getInt(RequestConstants.UNIT_ID);
-        Unit selectedUnit = unitList.get(unitID);
+        Unit selectedUnit = getUnit(unitID);
         if (selectedUnit == null) {
             callback.onComplete(null);
             return;
@@ -311,7 +307,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         MyBundle bundle = action.getThisRequest();
         Point position = bundle.getPoint(RequestConstants.ORIGIN_HEX);
 
-        SpaceGameHexTile hex = getHex(position);
+        HexTile hex = getHex(position);
         if (hex == null) {
             callback.onComplete(null);
             return;
@@ -320,7 +316,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         ArrayList<MyBundle> subsectionList = new ArrayList<>();
 
         //Build Bundles for each subsection and then adds it to a list
-        for (SpaceGameHexSubsection subsection : hex.getSubsections()) {
+        for (Subsection subsection : hex.getSubsections()) {
             MyBundle subInfo = new MyBundle();
             subInfo.putPoint(RequestConstants.ORIGIN_HEX, subsection.getParentPosition());
             subInfo.putSubsection(RequestConstants.ORIGIN_SUBSECTION, subsection.getPosition());
@@ -340,11 +336,11 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         MyBundle bundle = action.getThisRequest();
         Point position = bundle.getPoint(RequestConstants.ORIGIN_HEX);
         HHexDirection direction = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
-        SpaceGameHexSubsection subsection = getHex(position).getSubsection(direction);
+        Subsection subsection = getHex(position).getSubsection(direction);
 
         if(direction == HHexDirection.CENTER){
             MyBundle cityInfo = new MyBundle();
-            SpaceStation city = ((SpaceGameCenterSubsection)subsection).getCity();
+            SpaceStation city = ((SubsectionCenter)subsection).getCity();
             if(city!=null){
                 cityInfo.putInt(RequestConstants.SPACE_STATION_ID,city.getID());
                 cityInfo.putInt(RequestConstants.LEVEL,city.getLevel());
@@ -367,12 +363,9 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         actionCompleted(callback, bundle, true);
     }
 
-    private SpaceGameHexTile getHex(Point position) {
-        return tileMap.get(position);
-    }
 
     private Unit getUnit(int unitID) {
-        return unitList.get(unitID);
+        return entityHandler.getUnit(unitID);
     }
 
     //returns the radius of the game
@@ -385,7 +378,7 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         if (radius > 0)
             if (this.radius == -1) {
                 this.radius = radius;
-                initializeMap(radius);
+                mapHandler.initializeMap(radius);
                 return true;
             }
         return false;
@@ -413,53 +406,49 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
 
     }
 
-
-    public SpaceGameHexTile getTile(Point position) {
-        return tileMap.get(position);
+    public HexTile getHex(Point position) {
+        return mapHandler.getHex(position);
     }
 
-    public Collection<SpaceGameHexTile> getTiles() {
-        return tileMap.values();
+    public Collection<HexTile> getTiles() {
+        return mapHandler.getMap();
     }
 
     private void selectUnit(Unit e) {
         activeUnit = e;
     }
 
-    private SpaceGameHexSubsection[] moves() {
-        ArrayList<SpaceGameHexSubsection> a = new ArrayList<>();
+    private Subsection[] moves() {
+        ArrayList<Subsection> a = new ArrayList<>();
         int team = activeUnit.getAffiliation();
         int tile;
-        for (SpaceGameHexSubsection s : activeUnit.getSubsection().getNeighbors()) {
+        for (Subsection s : activeUnit.getSubsection().getNeighbors()) {
             tile = s.getAffiliation();
             if (tile == team || tile == 0)
                 a.add(s);
         }
-        return (SpaceGameHexSubsection[]) a.toArray();
+        return (Subsection[]) a.toArray();
     }
 
-    public SpaceGameHexSubsection[] attacks() {
-        ArrayList<SpaceGameHexSubsection> a = new ArrayList<>();
+    public Subsection[] attacks() {
+        ArrayList<Subsection> a = new ArrayList<>();
         int team = activeUnit.getAffiliation();
         int tile;
-        for (SpaceGameHexSubsection s : activeUnit.getSubsection().getNeighbors()) {
+        for (Subsection s : activeUnit.getSubsection().getNeighbors()) {
             tile = s.getAffiliation();
             if (tile == team || tile == 0)
                 continue;
             a.add(s);
         }
-        return (SpaceGameHexSubsection[]) a.toArray();
+        return (Subsection[]) a.toArray();
     }
 
-    public void registerUnit(Unit unit){
-        unitList.put(unit.getID(),unit);
+    public Unit newUnit(SpaceStation station){
+        return entityHandler.newUnit(station);
     }
 
-    public SpaceStation registerSpaceStation(int faction,SpaceGameHexTile hexTile){
-        SpaceStation spaceStation = new SpaceStation(faction,hexTile,lastCityID);
-        lastCityID++;
-        cityList.put(spaceStation.getID(),spaceStation);
-        return spaceStation;
+    public SpaceStation registerSpaceStation(int faction,HexTile hexTile){
+        return entityHandler.newSpaceStation(faction,hexTile);
     }
 
     //methods for Team Controller to give actions
@@ -486,8 +475,8 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
 
     //Phases
     protected void resetPhase() {
-        for (SpaceGameHexTile h : tileMap.values()) {
-            for (SpaceGameHexSubsection s : h.getSubsections()) {
+        for (HexTile h : getTiles()) {
+            for (Subsection s : h.getSubsections()) {
                 s.resetInfo();
             }
         }
@@ -560,35 +549,14 @@ public class SpaceGameLocal extends AsyncTask<Void,Void,Void> {
         });
     }
 
-    //Initialize map
-    private void initializeMap(int radius) {
-        tileMap = new HashMap<>();
-        //center is at (radius*2,radius)
-        Point current = new Point(radius, radius);
-        HHexDirection facing = HHexDirection.DownLeft;
 
-        //Generate map ring by ring, going outward
-        for (int i = 1; i <= radius; i++) {
-            //Move up once to move out one ring
-            HHexDirection.Up.translatePoint(current);
-            //Go each direction once, switch the direction of travel each loop
-            for (int j = 0; j < 6; j++, facing = HHexDirection.rotateClockwise(facing))
-                //Translate in the direction a number of times equal to the radius
-                //Radius is equal to side length
-                for (int k = 0; k < i; k++, facing.translatePoint(current))
-                    //Add a new hex tile to the tileMap
-                    //Deep copy of the Point because the current point will change
-                    tileMap.put(new Point(current),
-                            new SpaceGameHexTile(this, current));
-        }
-    }
 
     private void initializeFactionStart(int faction,Point startingHex){
-        SpaceGameHexTile start =tileMap.get(startingHex);
+        HexTile start = getHex(startingHex);
         if(start == null) return;
         start.placeCity(registerSpaceStation(faction,start));
         SpaceStation city =
-        ((SpaceGameCenterSubsection)start.getSubsection(HHexDirection.CENTER))
+        ((SubsectionCenter)start.getSubsection(HHexDirection.CENTER))
                 .getCity();
         city.createUnit();
         city.createUnit();

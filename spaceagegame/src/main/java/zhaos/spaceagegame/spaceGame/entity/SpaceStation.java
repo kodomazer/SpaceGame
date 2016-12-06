@@ -1,5 +1,8 @@
-package zhaos.spaceagegame.game;
+package zhaos.spaceagegame.spaceGame.entity;
 
+import zhaos.spaceagegame.spaceGame.LocalGame;
+import zhaos.spaceagegame.spaceGame.entity.Unit;
+import zhaos.spaceagegame.spaceGame.map.HexTile;
 import zhaos.spaceagegame.util.HHexDirection;
 
 /**
@@ -12,30 +15,28 @@ public class SpaceStation{
     private int actions;
     private int affiliation;
 
-    private SpaceGameHexTile hexTile;
-    private SpaceGameLocal parentGame;
+    private HexTile hexTile;
+    private LocalGame parentGame;
 
-    SpaceStation(int faction,SpaceGameHexTile hexTile,int ID){
+    SpaceStation(int faction, HexTile hexTile, int ID){
         level = 1;
         this.affiliation = faction;
         this.hexTile = hexTile;
         this.ID = ID;
 
-        parentGame = SpaceGameLocal.getInstance();
+        parentGame = LocalGame.getInstance();
     }
 
-    public int getAffiliation(){
+    int getAffiliation(){
         return affiliation;
     }
 
-    public SpaceGameHexTile getHexTile(){
+    HexTile getHexTile(){
         return hexTile;
     }
 
     public void createUnit(){
-        Unit unit = new Unit(this);
-        parentGame.registerUnit(unit);
-        hexTile.getSubsection(HHexDirection.CENTER).moveIn(unit);
+        Unit unit = parentGame.newUnit(this);
     }
 
     public int getID() {

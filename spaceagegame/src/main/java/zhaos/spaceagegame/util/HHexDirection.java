@@ -15,7 +15,7 @@ public enum HHexDirection {
     CENTER(6);
 
 
-    int directionNumber;
+    final int directionNumber;
     TranslateInterface translate;
     HHexDirection(int i){
         directionNumber = i;
@@ -29,6 +29,64 @@ public enum HHexDirection {
     public void setTranslate(TranslateInterface i){
         translate = i;
     }
+
+    public HHexDirection inverse(){
+        switch (directionNumber){
+            case 0:
+                return DownLeft;
+            case 1:
+                return Down;
+            case 2:
+                return DownRight;
+            case 3:
+                return UpRight;
+            case 4:
+                return Up;
+            case 5:
+                return UpLeft;
+            default:
+                return CENTER;
+        }
+    }
+
+    public HHexDirection clockwise(){
+        switch (directionNumber){
+            case 0:
+                return DownRight;
+            case 1:
+                return UpRight;
+            case 2:
+                return Up;
+            case 3:
+                return UpLeft;
+            case 4:
+                return DownLeft;
+            case 5:
+                return Down;
+            default:
+                return CENTER;
+        }
+    }
+
+    public HHexDirection counterClockwise(){
+        switch (directionNumber){
+            case 0:
+                return Up;
+            case 1:
+                return UpLeft;
+            case 2:
+                return DownLeft;
+            case 3:
+                return Down;
+            case 4:
+                return DownRight;
+            case 5:
+                return UpRight;
+            default:
+                return CENTER;
+        }
+    }
+
     public static HHexDirection getDirection(int i){
         switch(i){
             case 0:

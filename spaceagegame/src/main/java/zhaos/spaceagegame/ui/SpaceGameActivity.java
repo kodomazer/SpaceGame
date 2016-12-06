@@ -11,7 +11,7 @@ import android.widget.TextView;
 import android.widget.ZoomControls;
 
 import zhaos.spaceagegame.R;
-import zhaos.spaceagegame.game.SpaceGameHexTile;
+import zhaos.spaceagegame.spaceGame.map.HexTile;
 import zhaos.spaceagegame.util.FloatPoint;
 
 /**
@@ -92,7 +92,7 @@ public class SpaceGameActivity extends Activity{
         }
     }
 
-    public void setInfoText(SpaceGameHexTile t){
+    public void setInfoText(HexTile t){
         TextView view = (TextView) findViewById(R.id.InfoPanel);
         String s = "";
         s+=t.getPosition().toString();

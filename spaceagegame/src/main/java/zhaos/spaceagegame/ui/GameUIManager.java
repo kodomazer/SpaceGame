@@ -19,8 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import zhaos.spaceagegame.R;
-import zhaos.spaceagegame.game.SpaceGameLocal;
-import zhaos.spaceagegame.game.SpaceGameHexTile;
+import zhaos.spaceagegame.spaceGame.LocalGame;
+import zhaos.spaceagegame.spaceGame.map.HexTile;
 import zhaos.spaceagegame.util.MyBundle;
 import zhaos.spaceagegame.util.Request;
 import zhaos.spaceagegame.util.RequestConstants;
@@ -52,7 +52,7 @@ class GameUIManager implements Runnable {
     private int xPosition;
     private int yPosition;
 
-    SpaceGameLocal game;
+    LocalGame game;
     private Map<Point,HexGUI> GUIGrid;
 
     private RelativeLayout mainView;
@@ -103,7 +103,7 @@ class GameUIManager implements Runnable {
 
     @Override
     public void run() {
-        game = SpaceGameLocal.getInstance();
+        game = LocalGame.getInstance();
         game.setHandler(mainHandler);
         Bundle extras = parent.getIntent().getExtras();
 
@@ -119,7 +119,7 @@ class GameUIManager implements Runnable {
         Point position;
         FloatPoint pixelPosition;
         HexGUI gui;
-        for(SpaceGameHexTile t:game.getTiles()) {
+        for(HexTile t:game.getTiles()) {
             position = t.getPosition();
             pixelPosition = topLeftCornerPosition(position);
             gui = new HexGUI(
@@ -395,7 +395,10 @@ class GameUIManager implements Runnable {
         }
         return visiblePosition;
     }
-    public class SubsectionInfoWrapper extends LinearLayout {
+
+
+
+    private class SubsectionInfoWrapper extends LinearLayout {
         private static final String TAG = "Subsection Text Info";
         //City Section
         TextView cityHeader;

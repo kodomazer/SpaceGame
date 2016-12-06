@@ -1,4 +1,6 @@
-package zhaos.spaceagegame.game;
+package zhaos.spaceagegame.spaceGame.entity;
+
+import zhaos.spaceagegame.spaceGame.map.Subsection;
 
 /**
  * Created by kodomazer on 9/26/2016.
@@ -17,7 +19,7 @@ public abstract class Entity {
     protected int actionPoints;
 
     //The subsection the Entity resides in
-    protected SpaceGameHexSubsection parent;
+    protected Subsection parent;
 
 
     public int getAffiliation() {
@@ -32,7 +34,7 @@ public abstract class Entity {
         return actionPoints;
     }
 
-    public boolean useAction(){
+    protected boolean useAction(){
         if(actionPoints>0) {
             actionPoints--;
             return true;

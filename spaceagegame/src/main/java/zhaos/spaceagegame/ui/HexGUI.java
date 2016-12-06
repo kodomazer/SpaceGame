@@ -3,12 +3,11 @@ package zhaos.spaceagegame.ui;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import zhaos.spaceagegame.R;
-import zhaos.spaceagegame.game.SpaceGameHexTile;
+import zhaos.spaceagegame.spaceGame.map.HexTile;
 
 /**
  * Created by bzhao on 10/4/2016.
@@ -16,7 +15,7 @@ import zhaos.spaceagegame.game.SpaceGameHexTile;
 public class HexGUI extends ImageView {
     private final String TAG = "Hex GUI";
 
-    protected SpaceGameHexTile hexTile;
+    protected HexTile hexTile;
     protected Point position;
     protected Point size;
     protected RelativeLayout.LayoutParams params;
@@ -28,7 +27,7 @@ public class HexGUI extends ImageView {
     Bitmap hex;
 
     public HexGUI(RelativeLayout parent,
-                  SpaceGameHexTile content,
+                  HexTile content,
                   Point position,
                   Point size) {
         super(parent.getContext());

@@ -1,31 +1,32 @@
-package zhaos.spaceagegame.game;
+package zhaos.spaceagegame.spaceGame.map;
 
 import android.graphics.Point;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
+import zhaos.spaceagegame.spaceGame.entity.ConstructionPod;
+import zhaos.spaceagegame.spaceGame.entity.Unit;
 import zhaos.spaceagegame.util.HHexDirection;
 
 /**
  * Created by kodomazer on 9/26/2016.
  */
-class SpaceGameHexSubsection {
+public class Subsection {
     private static final String TAG = "Hex Subsection";
     //Hex Tile that the subsection belongs to.
-    protected SpaceGameHexTile parent;
+    protected HexTile parent;
 
 
     //The Part of the tile the subsection is part of
     protected HHexDirection position;
 
     protected Collection<Unit> occupants;
-    protected Collection<SpaceGameConstructionPod> pods;
+    protected Collection<ConstructionPod> pods;
     protected int affiliation;
     private int[] influenceLevels;
 
-    SpaceGameHexSubsection(SpaceGameHexTile parent, HHexDirection spot){
+    Subsection(HexTile parent, HHexDirection spot){
         occupants = new ArrayList<>();
         pods = new ArrayList<>();
         this.parent = parent;
@@ -37,11 +38,11 @@ class SpaceGameHexSubsection {
         return affiliation;
     }
 
-    boolean moveIn(Unit e){
+    public boolean moveIn(Unit e){
         boolean neighbor=false;
-        SpaceGameHexSubsection origin = e.getSubsection();
+        Subsection origin = e.getSubsection();
         if(origin!=null)
-            for(SpaceGameHexSubsection subsections:getNeighbors()){
+            for(Subsection subsections:getNeighbors()){
                 if(origin==subsections)
                     neighbor = true;
             }
@@ -56,7 +57,7 @@ class SpaceGameHexSubsection {
             occupants.add(e);
             if(origin!=null)
                 origin.moveOut(e);
-            SpaceGameConstructionPod pod = e.constructionPod();
+            ConstructionPod pod = e.constructionPod();
             if(pod!=null){
                 e.getSubsection().moveOut(pod);
                 pod.setPosition(parent,this);
@@ -77,7 +78,7 @@ class SpaceGameHexSubsection {
         return success;
     }
 
-    public boolean moveOut(SpaceGameConstructionPod c){
+    public boolean moveOut(ConstructionPod c){
         return pods.remove(c);
     }
 
@@ -93,9 +94,9 @@ class SpaceGameHexSubsection {
 
 
     //returns neighboring subsections
-    public SpaceGameHexSubsection[] getNeighbors(){
+    public Subsection[] getNeighbors(){
         //Four neighbors for a subsection in the outer ring of a Hex
-        SpaceGameHexSubsection[] a = new SpaceGameHexSubsection[4];
+        Subsection[] a = new Subsection[4];
         //Center subsection of same hexTile
         a[0]=parent.getSubsection(HHexDirection.CENTER);
         //Adjacent in the clockwise direction
@@ -111,25 +112,25 @@ class SpaceGameHexSubsection {
         return position;
     }
 
-    void resetInfo(){
+    public void resetInfo(){
         for(int i = 0;i<influenceLevels.length;i++){
             influenceLevels[i]=0;
         }
     }
 
-    void updateInfluence(int influence, int team){
+    public void updateInfluence(int influence, int team){
         if(influence<=influenceLevels[team])
             return;
         influenceLevels[team]=influence;
-        for (SpaceGameHexSubsection s: getNeighbors()) {
+        for (Subsection s: getNeighbors()) {
             s.updateInfluence(influence-1,team);
         }
     }
 
-    Point getParentPosition() {
+    public Point getParentPosition() {
         return parent.getPosition();
     }
-    SpaceGameHexTile getParent() {
+    HexTile getParent() {
         return parent;
     }
 

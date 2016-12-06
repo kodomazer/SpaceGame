@@ -1,8 +1,7 @@
-package zhaos.spaceagegame.game;
+package zhaos.spaceagegame.spaceGame;
 
 import android.graphics.Point;
 
-import zhaos.spaceagegame.ui.SubsectionGroup;
 import zhaos.spaceagegame.util.HHexDirection;
 
 /**

@@ -1,5 +1,9 @@
-package zhaos.spaceagegame.game;
+package zhaos.spaceagegame.spaceGame.entity;
 
+import zhaos.spaceagegame.spaceGame.LocalGame;
+import zhaos.spaceagegame.spaceGame.map.HexTile;
+import zhaos.spaceagegame.spaceGame.map.Subsection;
+import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
 import zhaos.spaceagegame.util.HHexDirection;
 
 /**
@@ -8,10 +12,7 @@ import zhaos.spaceagegame.util.HHexDirection;
 
 //Base class for anything that can take an action during the game
 
-class Unit {
-
-    private static int lastID = 1;
-
+public class Unit {
     //0 for neutral anything else is on a team
     private int factionNumber;
 
@@ -24,20 +25,19 @@ class Unit {
     private boolean skippedMainPhase;
 
     //remember position
-    private SpaceGameHexTile hexTile;
-    private SpaceGameHexSubsection subsection;
-    private SpaceGameLocal game;
-    private SpaceGameConstructionPod heldConstructionPod;
+    private HexTile hexTile;
+    private Subsection subsection;
+    private LocalGame game;
+    private ConstructionPod heldConstructionPod;
     private int ID;
 
-    public Unit(SpaceStation s){
+    Unit(SpaceStation s,int ID){
         factionNumber = s.getAffiliation();
-        ID = lastID;
-        lastID++;
+        this.ID = ID;
         level = 1;
         hexTile = s.getHexTile();
         subsection = hexTile.getSubsection(HHexDirection.CENTER);
-        ((SpaceGameCenterSubsection)subsection).addUnit(this);
+        ((SubsectionCenter)subsection).addUnit(this);
         actionPoints=3;
     }
 
@@ -58,34 +58,34 @@ class Unit {
         return actionPoints;
     }
 
-    int getAffiliation() {
+    public int getAffiliation() {
         return factionNumber;
     }
 
-    SpaceGameHexTile getHexTile(){
+    public HexTile getHexTile(){
         return hexTile;
     }
 
-    int getLevel(){
+    public int getLevel(){
         return level;
     }
 
-    SpaceGameHexSubsection getSubsection(){
+    public Subsection getSubsection(){
         return subsection;
     }
 
 
-    void setSubsection(SpaceGameHexTile tile,SpaceGameHexSubsection subsection){
+    public void setSubsection(HexTile tile, Subsection subsection){
         hexTile = tile;
         this.subsection = subsection;
     }
 
 
-    public SpaceGameConstructionPod constructionPod() {
+    public ConstructionPod constructionPod() {
         return heldConstructionPod;
     }
 
-    public void pickUpConstructionPod(SpaceGameConstructionPod constructionPod) {
+    public void pickUpConstructionPod(ConstructionPod constructionPod) {
         heldConstructionPod = constructionPod;
     }
 

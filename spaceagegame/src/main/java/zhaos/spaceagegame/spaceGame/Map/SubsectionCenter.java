@@ -1,25 +1,27 @@
-package zhaos.spaceagegame.game;
+package zhaos.spaceagegame.spaceGame.map;
 
+import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
+import zhaos.spaceagegame.spaceGame.entity.Unit;
 import zhaos.spaceagegame.util.HHexDirection;
 
 /**
  * Created by kodomazer on 9/27/2016.
  */
-public class SpaceGameCenterSubsection extends SpaceGameHexSubsection {
+public class SubsectionCenter extends Subsection {
 
     //Center subsection can hold a SpaceStation, other subsections cannot
-    protected SpaceStation station;
+    private SpaceStation station;
     private int energyCount;
 
-    public SpaceGameCenterSubsection(SpaceGameHexTile parent) {
+    SubsectionCenter(HexTile parent) {
         super(parent, HHexDirection.CENTER);
         station = null;
     }
 
     @Override
-    public SpaceGameHexSubsection[] getNeighbors() {
+    public Subsection[] getNeighbors() {
         //6 subsections adjacent to the center of the hexTile, all of the outer subsections
-        SpaceGameHexSubsection[] a = new SpaceGameHexSubsection[6];
+        Subsection[] a = new Subsection[6];
         HHexDirection current = HHexDirection.Up;
         do{
             a[current.i()] = parent.getSubsection(current); //get neighbor
@@ -33,12 +35,18 @@ public class SpaceGameCenterSubsection extends SpaceGameHexSubsection {
         return station;
     }
 
-    public void placeCity(SpaceStation spaceStation) {
+    void placeCity(SpaceStation spaceStation) {
         station = spaceStation;
     }
 
+    //Only used when creating units via space station
     public void addUnit(Unit unit) {
+        if(occupants.contains(unit))return;
         occupants.add(unit);
-
     }
+
+    void buildCity(SpaceStation city) {
+        station = city;
+    }
+
 }

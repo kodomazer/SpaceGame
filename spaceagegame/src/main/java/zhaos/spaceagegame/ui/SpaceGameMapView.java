@@ -6,17 +6,17 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.RelativeLayout;
 
-import zhaos.spaceagegame.game.SpaceGameLocal;
+import zhaos.spaceagegame.spaceGame.LocalGame;
 import android.content.Context;
 
-import zhaos.spaceagegame.game.SpaceGameHexTile;
+import zhaos.spaceagegame.spaceGame.map.HexTile;
 
 /**
  * Created by kodomazer on 10/11/2016.
  */
 public class SpaceGameMapView extends RelativeLayout {
     private static String TAG = "MapView";
-    protected SpaceGameLocal gameInstance;
+    protected LocalGame gameInstance;
     protected Point canvasSize;
     protected Point topLeftCorner;
 
@@ -32,7 +32,7 @@ public class SpaceGameMapView extends RelativeLayout {
         super(context);
     }
 
-    public SpaceGameMapView(SpaceGameActivity context, SpaceGameLocal game, Point size) {
+    public SpaceGameMapView(SpaceGameActivity context, LocalGame game, Point size) {
         super(context);
         setClipChildren(false);
         gameInstance = game;
@@ -66,7 +66,7 @@ public class SpaceGameMapView extends RelativeLayout {
                     (int) (topLeftGridLocation.x + canvasSize.x / (hexOffset.x) / scale) + 3,
                     (int) (topLeftGridLocation.y + canvasSize.y / (hexOffset.y) / scale) + 3);
             Log.d(TAG, "updatePosition: topleft,bottom right" + topLeftGridLocation + bottomRightGridLocation.toString());
-            SpaceGameHexTile hex;
+            HexTile hex;
             Point current = new Point(topLeftGridLocation);
             Point relativeSize = new Point((int) (hexSize.x * scale),
                     (int) (hexSize.y * scale));
@@ -75,7 +75,7 @@ public class SpaceGameMapView extends RelativeLayout {
             for (; current.x < bottomRightGridLocation.x; current.offset(1, 0)) {
                 for (; current.y < bottomRightGridLocation.y; current.offset(0, 1)) {
                     Log.d(TAG, "updatePosition: current " + current.toString());
-                    hex = gameInstance.getTile(current);
+                    hex = gameInstance.getHex(current);
                     HexGUI gui = new HexGUI(this,
                             hex,
                             new Point((relativeOffset.x) * current.x
