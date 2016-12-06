@@ -2,16 +2,15 @@ package zhaos.spaceagegame.spaceGame.map;
 
 import android.graphics.Point;
 
-import zhaos.spaceagegame.spaceGame.LocalGame;
 import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
 import zhaos.spaceagegame.util.HHexDirection;
 
 /**
- * Created by kodomazer on 9/26/2016.
+ * Hex Tiles make up the base of a Hex based game board
  */
 public class HexTile {
-    Point position;
-    final HexTile[] neighbors = new HexTile[6];
+    private Point position;
+    private final HexTile[] neighbors = new HexTile[6];
 
     protected int energyCount;
     //-1 if contested
@@ -19,7 +18,7 @@ public class HexTile {
     //any other number if it belongs to a team
     protected int affiliation;
 
-    zhaos.spaceagegame.spaceGame.map.Subsection[] subsections;
+    Subsection[] subsections;
 
     public HexTile(Point position){
         //deep copy
@@ -29,7 +28,7 @@ public class HexTile {
         //Initialize subsections
         subsections = new zhaos.spaceagegame.spaceGame.map.Subsection[7];
         for(int i = 0;i<7;i++) {
-                subsections[i] = zhaos.spaceagegame.spaceGame.map.MapHandler.makeSubsection(HHexDirection.getDirection(i),this);
+                subsections[i] = MapHandler.makeSubsection(HHexDirection.getDirection(i),this);
         }
     }
 

@@ -4,13 +4,10 @@ package zhaos.spaceagegame.spaceGame;
 import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.util.ArrayMap;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 
 import zhaos.spaceagegame.spaceGame.entity.EntityHandler;
@@ -133,28 +130,38 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
                 continue;
             }
             MyBundle requestBundle = action.getThisRequest();
-            switch (requestBundle.getInt(RequestConstants.INSTRUCTION)) {
-                case RequestConstants.GAME_INFO:
-                    getGameInfo(action);
+            switch (requestBundle.getInt(RequestConstants.INSTRUCTION) &
+                    RequestConstants.ACTION_MASK) {
+                case RequestConstants.GAME_ACTION:
+                    handleAction(action);
+                case RequestConstants.MAP_ACTION:
+                    mapHandler.handleAction(action);
                     break;
-                case RequestConstants.HEX_INFO:
-                    getHexInfo(action);
+                case RequestConstants.ENTITY_ACTION:
+                    entityHandler.handleAction(action);
                     break;
-                case RequestConstants.SUBSECTION_INFO:
-                    getSubsectionInfo(action);
-                    break;
-                case RequestConstants.UNIT_INFO:
-                    getUnitInfo(action);
-                    break;
-                case RequestConstants.UNIT_MOVE:
-                    moveUnit(action);
-                    break;
-                case RequestConstants.UNIT_SELECT:
-                    unitSelect(action);
-                    break;
-                case RequestConstants.UNIT_ATTACK:
-                    unitAttack(action);
-                    break;
+//                Deprecating code for now.  Refactoring for the facade design pattern
+//                case RequestConstants.GAME_INFO:
+//                    getGameInfo(action);
+//                    break;
+//                case RequestConstants.HEX_INFO:
+//                    getHexInfo(action);
+//                    break;
+//                case RequestConstants.SUBSECTION_INFO:
+//                    getSubsectionInfo(action);
+//                    break;
+//                case RequestConstants.UNIT_INFO:
+//                    getUnitInfo(action);
+//                    break;
+//                case RequestConstants.UNIT_MOVE:
+//                    moveUnit(action);
+//                    break;
+//                case RequestConstants.UNIT_SELECT:
+//                    unitSelect(action);
+//                    break;
+//                case RequestConstants.UNIT_ATTACK:
+//                    unitAttack(action);
+//                    break;
 
                 default:
                     //do nothing
@@ -165,6 +172,9 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         return null;
     }
 
+    private void handleAction(Request action) {
+
+    }
 
 
     private void unitAttack(Request action) {
@@ -285,7 +295,7 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         info.putInt(RequestConstants.UNIT_STATUS_FLAGS,
                 (isSelected?RequestConstants.SELECTED:0)|
                         //TODO actual checks for movement and battle
-                        (selectedUnit.canMove()?RequestConstants.MOVEABLE|
+                        (selectedUnit.canMove()?RequestConstants.MOVABLE |
                         RequestConstants.CAN_ATTACK:0));
 
         info.putPoint(RequestConstants.ORIGIN_HEX, selectedUnit.getHexTile().getPosition());

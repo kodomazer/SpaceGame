@@ -553,7 +553,7 @@ class GameUIManager implements Runnable {
 
             public void updateInfo(MyBundle info) {
                 int status = info.getInt(RequestConstants.UNIT_STATUS_FLAGS);
-                if((status & RequestConstants.MOVEABLE) != 0){
+                if((status & RequestConstants.MOVABLE) != 0){
                     move.setVisibility(VISIBLE);
                 }
                 else{

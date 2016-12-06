@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import zhaos.spaceagegame.util.HHexDirection;
+import zhaos.spaceagegame.util.Request;
+import zhaos.spaceagegame.util.RequestConstants;
 
 /**
  * Created by kodomazer on 12/4/2016.
@@ -65,6 +67,33 @@ public final class MapHandler {
                     //Deep copy of the Point because the current point will change
                     generateTile(current);
         }
+    }
+
+    public void handleAction(Request action) {
+        switch (action.getThisRequest().getInt(RequestConstants.INSTRUCTION)
+                & RequestConstants.HANDLER_MASK){
+            case RequestConstants.HEX_HANDLER:
+                delegateToHex(action);
+                break;
+            case RequestConstants.SUB_HANDLER:
+                delegateToSubsection(action);
+                break;
+            default:
+                switch (action.getThisRequest().getInt(RequestConstants.INSTRUCTION)){
+                    default:
+                        //nothing so far
+                }
+        }
+
+    }
+
+    private void delegateToSubsection(Request action) {
+        //TODO: Need to find the proper Subsection and then pass on the action
+        //Possibly just pass it to to the hex and the hex will pass it to the subsection...
+    }
+
+    private void delegateToHex(Request action) {
+        //TODO: Need to find the proper hex and then pass on the action
     }
 
 }

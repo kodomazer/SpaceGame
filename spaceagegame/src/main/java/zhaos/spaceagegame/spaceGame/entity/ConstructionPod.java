@@ -9,10 +9,20 @@ import zhaos.spaceagegame.util.HHexDirection;
  * Created by kodomazer on 9/27/2016.
  */
 public class ConstructionPod {
-    public HexTile hexTile;
-    public Subsection subsection;
+    private String TAG = "Cons_Pod";
+
+    private HexTile hexTile;
+    private Subsection subsection;
+
+    private int ID;
 
     public int actionCounter;
+
+    ConstructionPod(SpaceStation station,int ID){
+        this.ID = ID;
+        hexTile = station.getHexTile();
+        subsection = hexTile.getSubsection(HHexDirection.CENTER);
+    }
 
 
     public void setPosition(HexTile parent, Subsection subsection) {
@@ -26,6 +36,7 @@ public class ConstructionPod {
         actionCounter += 1;
         if (actionCounter == 3) {
             ((SubsectionCenter)subsection).getCity();
+            //TODO: add in City Building/Upgrade code
         }
     }
 
