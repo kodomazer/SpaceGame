@@ -19,7 +19,7 @@ public class HexTile {
     //any other number if it belongs to a team
     protected int affiliation;
 
-    Subsection[] subsections;
+    zhaos.spaceagegame.spaceGame.map.Subsection[] subsections;
 
     public HexTile(Point position){
         //deep copy
@@ -27,9 +27,9 @@ public class HexTile {
         //Hexes start off as neutral
         affiliation = 0;
         //Initialize subsections
-        subsections = new Subsection[7];
+        subsections = new zhaos.spaceagegame.spaceGame.map.Subsection[7];
         for(int i = 0;i<7;i++) {
-                subsections[i] = MapHandler.makeSubsection(HHexDirection.getDirection(i),this);
+                subsections[i] = zhaos.spaceagegame.spaceGame.map.MapHandler.makeSubsection(HHexDirection.getDirection(i),this);
         }
     }
 
