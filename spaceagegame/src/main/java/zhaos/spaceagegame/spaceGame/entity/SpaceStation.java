@@ -1,30 +1,38 @@
 package zhaos.spaceagegame.spaceGame.entity;
 
-import zhaos.spaceagegame.spaceGame.LocalGame;
-import zhaos.spaceagegame.spaceGame.entity.Unit;
 import zhaos.spaceagegame.spaceGame.map.HexTile;
-import zhaos.spaceagegame.util.HHexDirection;
+import zhaos.spaceagegame.util.MyBundle;
+import zhaos.spaceagegame.util.Request;
+import zhaos.spaceagegame.util.RequestConstants;
 
 /**
  * Created by kodomazer on 9/27/2016.
  */
 public class SpaceStation{
 
-    private int ID;
+    private int _ID;
     private int level;
     private int actions;
     private int affiliation;
 
     private HexTile hexTile;
-    private LocalGame parentGame;
+    private EntityHandler parent;
 
-    SpaceStation(int faction, HexTile hexTile, int ID){
+    SpaceStation(EntityHandler entityHandler,
+                 int faction,
+                 HexTile hexTile,
+                 int ID){
         level = 1;
         this.affiliation = faction;
         this.hexTile = hexTile;
-        this.ID = ID;
+        this._ID = ID;
 
-        parentGame = LocalGame.getInstance();
+        parent = entityHandler;
+    }
+
+    public void getSpaceStationInfo(MyBundle bundle){
+        bundle.putInt(RequestConstants.SPACE_STATION_ID, getID());
+        bundle.putInt(RequestConstants.LEVEL,getLevel());
     }
 
     int getAffiliation(){
@@ -35,19 +43,36 @@ public class SpaceStation{
         return hexTile;
     }
 
-    public void createUnit(){
-        Unit unit = parentGame.newUnit(this);
+    private void createUnit(){
+        Unit unit = parent.newUnit(this);
     }
 
-    public int getID() {
-        return ID;
+    private void createPod(){
+        ConstructionPod pod = parent.newConstructionPod(this);
     }
 
-    public int getLevel() {
+    int getID() {
+        return _ID;
+    }
+
+    int getLevel() {
         return level;
     }
 
-    public void upgrade() {
+    void upgrade() {
         level++;
+    }
+
+    void handleAction(Request action) {
+        MyBundle bundle = action.getThisRequest();
+        switch (bundle.getInt(RequestConstants.INSTRUCTION)){
+            case RequestConstants.CITY_PROD_UNIT:
+                createUnit();
+                break;
+            case RequestConstants.CITY_PROD_POD:
+                createPod();
+                break;
+
+        }
     }
 }

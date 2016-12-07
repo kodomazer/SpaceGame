@@ -67,14 +67,14 @@ public class RequestConstants {
     //Hex Actions
     public final static int HEX_INFO = MAP_ACTION | HEX_HANDLER | 1;
     public static final int SUBSECTION_INFO = MAP_ACTION | SUB_HANDLER | 1;
-    //Unit Actions
-    public final static int UNIT_INFO = ENTITY_ACTION | UNIT_HANDLER | 1;
-    public final static int UNIT_MOVE = ENTITY_ACTION | UNIT_HANDLER | 2;
-    public final static int UNIT_SELECT = ENTITY_ACTION | UNIT_HANDLER | 3;
-    public final static int UNIT_ATTACK = ENTITY_ACTION | UNIT_HANDLER | 4;
+
+    //Entity Actions
+    public final static int UNIT_SELECT = ENTITY_ACTION | 1;
+    public final static int UNIT_ATTACK = ENTITY_ACTION | 2;
+    public final static int UNIT_MOVE = ENTITY_ACTION | 3;
+    public final static int UNIT_INFO = ENTITY_ACTION | UNIT_HANDLER |1;
     //City Actions
     public final static int CITY_INFO = ENTITY_ACTION | CITY_HANDLER | 1;
-
     public final static int CITY_PROD_UNIT = ENTITY_ACTION | CITY_HANDLER | 2;
     public final static int CITY_PROD_POD = ENTITY_ACTION | CITY_HANDLER | 3;
     //Construction Pods

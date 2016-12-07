@@ -35,6 +35,11 @@ public class EntityHandler {
     }
     
     //Getters
+    private SpaceStation getCity(int id) {
+        SpaceStation spaceStation = spaceStations.get(id);
+        if(spaceStation==null)return null;
+        return spaceStation;
+    }
     public Unit getUnit(int id){
         Unit unit = units.get(id);
         //When everything gets turned into an Entity 
@@ -52,7 +57,7 @@ public class EntityHandler {
     }
 
     public SpaceStation newSpaceStation(int faction, HexTile hexTile) {
-        SpaceStation spaceStation = new SpaceStation(faction,hexTile,lastSpaceStationID);
+        SpaceStation spaceStation = new SpaceStation(this,faction,hexTile,lastSpaceStationID);
         spaceStations.put(lastSpaceStationID,spaceStation);
         lastSpaceStationID++;
         return spaceStation;
@@ -92,7 +97,11 @@ public class EntityHandler {
 
     private void delegateToCity(Request action) {
         //TODO: Find the City and pass on the action
+        SpaceStation spaceStation = getCity(action.getThisRequest()
+                .getInt(RequestConstants.SPACE_STATION_ID));
+        spaceStation.handleAction(action);
     }
+
 
     private void delegateToPod(Request action) {
         //TODO: Find the Pod and pass on the action

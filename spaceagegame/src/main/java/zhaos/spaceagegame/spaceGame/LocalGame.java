@@ -46,6 +46,11 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         return instance;
     }
 
+    public static EntityHandler getEntityHandler() {
+        if(instance == null) instance = new LocalGame();
+        return instance.entityHandler;
+    }
+
     private Handler mainThread;
 
     private EntityHandler entityHandler;
@@ -339,39 +344,7 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
     }
 
 
-    private void getSubsectionInfo(Request action) {
-        Request.RequestCallback callback = action.getCallback();
-        if (callback == null) return;
 
-        MyBundle bundle = action.getThisRequest();
-        Point position = bundle.getPoint(RequestConstants.ORIGIN_HEX);
-        HHexDirection direction = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
-        Subsection subsection = getHex(position).getSubsection(direction);
-
-        if(direction == HHexDirection.CENTER){
-            MyBundle cityInfo = new MyBundle();
-            SpaceStation city = ((SubsectionCenter)subsection).getCity();
-            if(city!=null){
-                cityInfo.putInt(RequestConstants.SPACE_STATION_ID,city.getID());
-                cityInfo.putInt(RequestConstants.LEVEL,city.getLevel());
-                bundle.putBundle(RequestConstants.SPACE_STATION_INFO,cityInfo);
-            }
-        }
-
-        //Handle Units
-        Unit[] units = subsection.getUnits();
-        ArrayList<MyBundle> unitList = new ArrayList<>(units.length);
-        for(Unit unit: units){
-            MyBundle unitInfo = new MyBundle();
-            unitInfo.putInt(RequestConstants.LEVEL,unit.getLevel());
-            unitInfo.putInt(RequestConstants.UNIT_ID,unit.getID());
-            unitList.add(unitInfo);
-        }
-        bundle.putArrayList(RequestConstants.UNIT_LIST,unitList);
-
-        //callback
-        actionCompleted(callback, bundle, true);
-    }
 
 
     private Unit getUnit(int unitID) {
@@ -471,7 +444,7 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         running = false;
     }
 
-    private void actionCompleted(final Request.RequestCallback callback,
+     public void actionCompleted(final Request.RequestCallback callback,
                                  final MyBundle info, boolean success) {
         info.putBoolean(RequestConstants.SUCCESS, success);
         mainThread.post(new Runnable() {
@@ -568,11 +541,6 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         SpaceStation city =
         ((SubsectionCenter)start.getSubsection(HHexDirection.CENTER))
                 .getCity();
-        city.createUnit();
-        city.createUnit();
-        city.createUnit();
-        city.upgrade();
-        city.upgrade();
 
     }
 

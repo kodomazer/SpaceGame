@@ -94,6 +94,10 @@ public final class MapHandler {
 
     private void delegateToHex(Request action) {
         //TODO: Need to find the proper hex and then pass on the action
+        HexTile hex = getHex(action.getThisRequest().getPoint(RequestConstants.HEX));
+        if(hex!=null){
+            hex.handleAction(action);
+        }
     }
 
 }

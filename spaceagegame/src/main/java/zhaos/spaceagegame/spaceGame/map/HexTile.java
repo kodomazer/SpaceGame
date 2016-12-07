@@ -4,6 +4,7 @@ import android.graphics.Point;
 
 import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
 import zhaos.spaceagegame.util.HHexDirection;
+import zhaos.spaceagegame.util.Request;
 
 /**
  * Hex Tiles make up the base of a Hex based game board
@@ -89,4 +90,7 @@ public class HexTile {
         ((SubsectionCenter)subsections[6]).placeCity(station);
     }
 
+    void handleAction(Request action) {
+
+    }
 }

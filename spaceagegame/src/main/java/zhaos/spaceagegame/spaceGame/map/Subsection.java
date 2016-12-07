@@ -5,9 +5,14 @@ import android.graphics.Point;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import zhaos.spaceagegame.spaceGame.LocalGame;
 import zhaos.spaceagegame.spaceGame.entity.ConstructionPod;
+import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
 import zhaos.spaceagegame.spaceGame.entity.Unit;
 import zhaos.spaceagegame.util.HHexDirection;
+import zhaos.spaceagegame.util.MyBundle;
+import zhaos.spaceagegame.util.Request;
+import zhaos.spaceagegame.util.RequestConstants;
 
 /**
  * Created by kodomazer on 9/26/2016.
@@ -138,6 +143,29 @@ public class Subsection {
         Unit[] units = new Unit[occupants.size()];
         occupants.toArray(units);
         return units;
+    }
+
+    protected void getSubsectionInfo(Request action) {
+        Request.RequestCallback callback = action.getCallback();
+        if (callback == null) return;
+
+        MyBundle bundle = action.getThisRequest();
+        Point position = bundle.getPoint(RequestConstants.ORIGIN_HEX);
+        HHexDirection direction = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
+
+        //Handle Units
+        Unit[] units = getUnits();
+        ArrayList<MyBundle> unitList = new ArrayList<>(units.length);
+        for(Unit unit: units){
+            MyBundle unitInfo = new MyBundle();
+            unitInfo.putInt(RequestConstants.LEVEL,unit.getLevel());
+            unitInfo.putInt(RequestConstants.UNIT_ID,unit.getID());
+            unitList.add(unitInfo);
+        }
+        bundle.putArrayList(RequestConstants.UNIT_LIST,unitList);
+
+        //callback
+        LocalGame.getInstance().actionCompleted(callback, bundle, true);
     }
 
 }
