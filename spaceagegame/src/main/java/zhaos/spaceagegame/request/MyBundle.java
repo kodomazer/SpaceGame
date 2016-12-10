@@ -1,9 +1,11 @@
-package zhaos.spaceagegame.util;
+package zhaos.spaceagegame.request;
 
 import android.graphics.Point;
 import android.util.ArrayMap;
 
 import java.util.ArrayList;
+
+import zhaos.spaceagegame.util.HHexDirection;
 
 /**
  * Created by kodomazer on 10/24/2016.

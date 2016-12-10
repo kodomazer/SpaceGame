@@ -1,9 +1,9 @@
 package zhaos.spaceagegame.spaceGame.entity;
 
 import zhaos.spaceagegame.spaceGame.map.HexTile;
-import zhaos.spaceagegame.util.MyBundle;
-import zhaos.spaceagegame.util.Request;
-import zhaos.spaceagegame.util.RequestConstants;
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.Request;
+import zhaos.spaceagegame.request.RequestConstants;
 
 /**
  * Created by kodomazer on 9/27/2016.

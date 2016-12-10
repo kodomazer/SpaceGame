@@ -1,14 +1,12 @@
 package zhaos.spaceagegame.spaceGame.entity;
 
 import android.util.ArrayMap;
-import android.widget.Space;
 
-import java.lang.reflect.AccessibleObject;
 import java.util.Map;
 
 import zhaos.spaceagegame.spaceGame.map.HexTile;
-import zhaos.spaceagegame.util.Request;
-import zhaos.spaceagegame.util.RequestConstants;
+import zhaos.spaceagegame.request.Request;
+import zhaos.spaceagegame.request.RequestConstants;
 
 /**
  * Created by kodomazer on 12/4/2016.

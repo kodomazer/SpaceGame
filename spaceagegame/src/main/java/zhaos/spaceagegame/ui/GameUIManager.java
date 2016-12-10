@@ -19,11 +19,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import zhaos.spaceagegame.R;
+import zhaos.spaceagegame.request.helperRequest.HexInfoRequest;
 import zhaos.spaceagegame.spaceGame.LocalGame;
 import zhaos.spaceagegame.spaceGame.map.HexTile;
-import zhaos.spaceagegame.util.MyBundle;
-import zhaos.spaceagegame.util.Request;
-import zhaos.spaceagegame.util.RequestConstants;
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.Request;
+import zhaos.spaceagegame.request.RequestConstants;
 import zhaos.spaceagegame.util.FloatPoint;
 import zhaos.spaceagegame.util.HHexDirection;
 
@@ -319,21 +320,16 @@ class GameUIManager implements Runnable {
             if (clicked == null) return;
             clicked.performClick();
 
-            //Build Request
-            MyBundle request = new MyBundle();
-            request.putInt(
-                    RequestConstants.INSTRUCTION,
-                    RequestConstants.HEX_INFO);
-            request.putPoint(
-                    RequestConstants.ORIGIN_HEX,
-                    clickPoint);
-            //Function to build UI once the info is returned
-            game.sendRequest(new Request(request, new Request.RequestCallback() {
+            HexInfoRequest request= new HexInfoRequest(new Request.RequestCallback() {
                 @Override
                 public void onComplete(MyBundle info) {
                     handleTextHexInfo(info);
                 }
-            }));
+            });
+            request.setHex(clickPoint);
+            request.getThisRequest();
+            //Function to build UI once the info is returned
+            game.sendRequest(request);
         }
     }
 

@@ -1,4 +1,4 @@
-package zhaos.spaceagegame.util;
+package zhaos.spaceagegame.request;
 
 /**
  * Created by kodomazer on 10/22/2016.

@@ -2,7 +2,6 @@ package zhaos.spaceagegame.ui;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.view.View;
 import android.widget.ImageView;
@@ -10,8 +9,8 @@ import android.widget.RelativeLayout;
 
 import zhaos.spaceagegame.R;
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.util.MyBundle;
-import zhaos.spaceagegame.util.RequestConstants;
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.RequestConstants;
 
 /**
  * Created by bzhao on 10/4/2016.

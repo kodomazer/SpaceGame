@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.util.Request;
-import zhaos.spaceagegame.util.RequestConstants;
+import zhaos.spaceagegame.request.Request;
+import zhaos.spaceagegame.request.RequestConstants;
 
 /**
  * Created by kodomazer on 12/4/2016.

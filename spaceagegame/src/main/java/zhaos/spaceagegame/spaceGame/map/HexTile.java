@@ -2,9 +2,13 @@ package zhaos.spaceagegame.spaceGame.map;
 
 import android.graphics.Point;
 
+import java.util.ArrayList;
+
 import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.util.Request;
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.Request;
+import zhaos.spaceagegame.request.RequestConstants;
 
 /**
  * Hex Tiles make up the base of a Hex based game board
@@ -91,6 +95,20 @@ public class HexTile {
     }
 
     void handleAction(Request action) {
+
+    }
+
+    public void getInfo(MyBundle bundle){
+        ArrayList<MyBundle> subsectionList = new ArrayList<>(7);
+        //Build Bundles for each subsection and then adds it to a list
+        for (Subsection subsection : getSubsections()) {
+            MyBundle subInfo = new MyBundle();
+            subInfo.putPoint(RequestConstants.ORIGIN_HEX,
+                    position);
+            subsection.getSubsectionShallowInfo(subInfo);
+            subsectionList.add(subInfo);
+        }
+        bundle.putArrayList(RequestConstants.SUBSECTION_LIST, subsectionList);
 
     }
 }

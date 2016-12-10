@@ -1,18 +1,16 @@
 package zhaos.spaceagegame.spaceGame.map;
 
 import android.graphics.Point;
+import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-import zhaos.spaceagegame.spaceGame.LocalGame;
 import zhaos.spaceagegame.spaceGame.entity.ConstructionPod;
-import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
 import zhaos.spaceagegame.spaceGame.entity.Unit;
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.util.MyBundle;
-import zhaos.spaceagegame.util.Request;
-import zhaos.spaceagegame.util.RequestConstants;
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.RequestConstants;
 
 /**
  * Created by kodomazer on 9/26/2016.
@@ -37,6 +35,7 @@ public class Subsection {
         this.parent = parent;
         position = spot;
         affiliation = -1;
+        influenceLevels = new int[2];
     }
 
     public int getAffiliation(){
@@ -145,27 +144,21 @@ public class Subsection {
         return units;
     }
 
-    protected void getSubsectionInfo(Request action) {
-        Request.RequestCallback callback = action.getCallback();
-        if (callback == null) return;
+    void getSubsectionShallowInfo(@NonNull MyBundle bundle) {
 
-        MyBundle bundle = action.getThisRequest();
-        Point position = bundle.getPoint(RequestConstants.ORIGIN_HEX);
-        HHexDirection direction = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
-
+        bundle.putSubsection(RequestConstants.ORIGIN_SUBSECTION,
+                position);
+        bundle.putInt(RequestConstants.FACTION_ID,
+                affiliation);
         //Handle Units
         Unit[] units = getUnits();
         ArrayList<MyBundle> unitList = new ArrayList<>(units.length);
         for(Unit unit: units){
             MyBundle unitInfo = new MyBundle();
-            unitInfo.putInt(RequestConstants.LEVEL,unit.getLevel());
-            unitInfo.putInt(RequestConstants.UNIT_ID,unit.getID());
+            unit.getInfo(unitInfo);
             unitList.add(unitInfo);
         }
         bundle.putArrayList(RequestConstants.UNIT_LIST,unitList);
-
-        //callback
-        LocalGame.getInstance().actionCompleted(callback, bundle, true);
     }
 
 }

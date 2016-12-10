@@ -5,9 +5,8 @@ import zhaos.spaceagegame.spaceGame.map.HexTile;
 import zhaos.spaceagegame.spaceGame.map.Subsection;
 import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.util.MyBundle;
-import zhaos.spaceagegame.util.Request;
-import zhaos.spaceagegame.util.RequestConstants;
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.RequestConstants;
 
 /**
  * Created by kodomazer on 9/26/2016.
@@ -96,7 +95,10 @@ public class Unit {
         return ID;
     }
 
-    void bundleInfo(MyBundle bundle){
-
+    public void getInfo(MyBundle bundle) {
+        bundle.putPoint(RequestConstants.ORIGIN_HEX, getHexTile().getPosition());
+        bundle.putInt(RequestConstants.LEVEL, getLevel());
+        bundle.putInt(RequestConstants.FACTION_ID, getAffiliation());
+        bundle.putInt(RequestConstants.UNIT_ID, getID());
     }
 }

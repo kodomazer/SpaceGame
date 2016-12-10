@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.SynchronousQueue;
 
+import zhaos.spaceagegame.request.helperRequest.HexInfoRequest;
 import zhaos.spaceagegame.spaceGame.entity.EntityHandler;
 import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
 import zhaos.spaceagegame.spaceGame.entity.Unit;
@@ -17,9 +18,9 @@ import zhaos.spaceagegame.spaceGame.map.HexTile;
 import zhaos.spaceagegame.spaceGame.map.MapHandler;
 import zhaos.spaceagegame.spaceGame.map.Subsection;
 import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
-import zhaos.spaceagegame.util.MyBundle;
-import zhaos.spaceagegame.util.Request;
-import zhaos.spaceagegame.util.RequestConstants;
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.Request;
+import zhaos.spaceagegame.request.RequestConstants;
 import zhaos.spaceagegame.ui.SpaceGameActivity;
 import zhaos.spaceagegame.util.HHexDirection;
 
@@ -134,47 +135,72 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
             } catch (InterruptedException i) {
                 continue;
             }
-            MyBundle requestBundle = action.getThisRequest();
-            switch (requestBundle.getInt(RequestConstants.INSTRUCTION) &
-                    RequestConstants.ACTION_MASK) {
-                case RequestConstants.GAME_ACTION:
-                    handleAction(action);
-                case RequestConstants.MAP_ACTION:
-                    mapHandler.handleAction(action);
-                    break;
-                case RequestConstants.ENTITY_ACTION:
-                    entityHandler.handleAction(action);
-                    break;
+            action.getThisRequest();
+            switch (action.getInstructioin()
+                    ){
+//                &    RequestConstants.ACTION_MASK) {
+//                case RequestConstants.GAME_ACTION:
+//                    handleAction(action);
+//                case RequestConstants.MAP_ACTION:
+//                    mapHandler.handleAction(action);
+//                    break;
+//                case RequestConstants.ENTITY_ACTION:
+//                    entityHandler.handleAction(action);
+//                    break;
 //                Deprecating code for now.  Refactoring for the facade design pattern
-//                case RequestConstants.GAME_INFO:
-//                    getGameInfo(action);
-//                    break;
-//                case RequestConstants.HEX_INFO:
-//                    getHexInfo(action);
-//                    break;
-//                case RequestConstants.SUBSECTION_INFO:
-//                    getSubsectionInfo(action);
-//                    break;
-//                case RequestConstants.UNIT_INFO:
+                case RequestConstants.GAME_INFO:
+                    getGameInfo(action);
+                    break;
+                case RequestConstants.HEX_INFO:
+                    getHexInfo(action);
+                    break;
+                case RequestConstants.SUBSECTION_INFO:
+//                    getSubsectionShallowInfo(action);
+                    break;
+                case RequestConstants.UNIT_INFO:
 //                    getUnitInfo(action);
-//                    break;
-//                case RequestConstants.UNIT_MOVE:
-//                    moveUnit(action);
-//                    break;
-//                case RequestConstants.UNIT_SELECT:
-//                    unitSelect(action);
-//                    break;
-//                case RequestConstants.UNIT_ATTACK:
-//                    unitAttack(action);
-//                    break;
+                    break;
+                case RequestConstants.UNIT_MOVE:
+                    moveUnit(action);
+                    break;
+                case RequestConstants.UNIT_SELECT:
+                    unitSelect(action);
+                    break;
+                case RequestConstants.UNIT_ATTACK:
+                    unitAttack(action);
+                    break;
 
                 default:
                     //do nothing
 
             }
+            resetPhase();
         }
 
         return null;
+    }
+
+    private void getHexInfo(Request action) {
+        Request.RequestCallback callback = action.getCallback();
+        if(callback == null) callback = emptyCallback;
+
+        if(action.getInstructioin() != RequestConstants.HEX_INFO){
+            actionCompleted(callback,null,false);
+            return;
+        }
+        HexInfoRequest infoRequest = (HexInfoRequest) action;
+        MyBundle hexInfo = new MyBundle();
+        HexTile tile = mapHandler.getHex(infoRequest.getHex());
+        if(tile==null){
+            actionCompleted(callback,hexInfo,false);
+            return;
+        }
+        tile.getInfo(hexInfo);
+
+        actionCompleted(callback,
+                hexInfo,
+                true);
+
     }
 
     private void handleAction(Request action) {
@@ -277,71 +303,12 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         actionCompleted(callback, bundle, true);
     }
 
-    private void getUnitInfo(Request action) {
-        MyBundle info = new MyBundle();
-        Request.RequestCallback callback = action.getCallback();
-        if (callback == null) return;
 
-        MyBundle bundle = action.getThisRequest();
-        int unitID = bundle.getInt(RequestConstants.UNIT_ID);
-        Unit selectedUnit = getUnit(unitID);
-        if (selectedUnit == null) {
-            callback.onComplete(null);
-            return;
-        }
-
-        boolean isSelected = false;
-        for (Unit aSelected : selected) {
-            if (aSelected == selectedUnit) {
-                isSelected = true;
-                break;
-            }
-        }
-        info.putInt(RequestConstants.UNIT_STATUS_FLAGS,
-                (isSelected?RequestConstants.SELECTED:0)|
-                        //TODO actual checks for movement and battle
-                        (selectedUnit.canMove()?RequestConstants.MOVABLE |
-                        RequestConstants.CAN_ATTACK:0));
-
-        info.putPoint(RequestConstants.ORIGIN_HEX, selectedUnit.getHexTile().getPosition());
-        info.putInt(RequestConstants.LEVEL, selectedUnit.getLevel());
-        info.putInt(RequestConstants.FACTION_ID, selectedUnit.getAffiliation());
-        info.putInt(RequestConstants.UNIT_ID, unitID);
-        actionCompleted(callback, info, true);
-    }
 
     private void getGameInfo(Request action) {
 
     }
 
-    private void getHexInfo(Request action) {
-        MyBundle info = new MyBundle();
-        Request.RequestCallback callback = action.getCallback();
-        if (callback == null) return;
-
-        MyBundle bundle = action.getThisRequest();
-        Point position = bundle.getPoint(RequestConstants.ORIGIN_HEX);
-
-        HexTile hex = getHex(position);
-        if (hex == null) {
-            callback.onComplete(null);
-            return;
-        }
-
-        ArrayList<MyBundle> subsectionList = new ArrayList<>();
-
-        //Build Bundles for each subsection and then adds it to a list
-        for (Subsection subsection : hex.getSubsections()) {
-            MyBundle subInfo = new MyBundle();
-            subInfo.putPoint(RequestConstants.ORIGIN_HEX, subsection.getParentPosition());
-            subInfo.putSubsection(RequestConstants.ORIGIN_SUBSECTION, subsection.getPosition());
-            subInfo.putInt(RequestConstants.FACTION_ID, subsection.getAffiliation());
-            subsectionList.add(subInfo);
-        }
-        info.putArrayList(RequestConstants.SUBSECTION_LIST, subsectionList);
-
-        actionCompleted(callback, info, true);
-    }
 
 
 
