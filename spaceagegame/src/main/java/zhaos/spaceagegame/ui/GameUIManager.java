@@ -20,6 +20,11 @@ import java.util.Map;
 
 import zhaos.spaceagegame.R;
 import zhaos.spaceagegame.request.helperRequest.HexInfoRequest;
+import zhaos.spaceagegame.request.helperRequest.SubsectionInfoBase;
+import zhaos.spaceagegame.request.helperRequest.SubsectionInfoRequest;
+import zhaos.spaceagegame.request.helperRequest.UnitAttackRequest;
+import zhaos.spaceagegame.request.helperRequest.UnitInfoRequest;
+import zhaos.spaceagegame.request.helperRequest.UnitMoveRequest;
 import zhaos.spaceagegame.spaceGame.LocalGame;
 import zhaos.spaceagegame.spaceGame.map.HexTile;
 import zhaos.spaceagegame.request.MyBundle;
@@ -58,11 +63,11 @@ class GameUIManager implements Runnable {
 
     private RelativeLayout mainView;
     private TextView infoText[];
-    private FrameLayout infoFrame;
+    FrameLayout infoFrame;
     private SubsectionInfoWrapper subsectionInfo;
     private LinearLayout hexInfo;
 
-    private int selectingSubsection;
+    SubsectionInfoBase selectingSubsection;
 
 
 
@@ -90,7 +95,10 @@ class GameUIManager implements Runnable {
         subsectionInfo = new SubsectionInfoWrapper(parent);
         hexInfo = (LinearLayout) parent.findViewById(R.id.hexInfoBase);
 
-        selectingSubsection = 0;
+        subsectionInfo.setParent(this);
+
+
+        selectingSubsection = null;
 
         GUIGrid = new HashMap<>();
 
@@ -242,22 +250,29 @@ class GameUIManager implements Runnable {
                 (int)relativeHalfHeight);
         Point relativePosition = new Point((int)(xPosition
                 -clickPoint.x*(relativeAngleWidth+relativeCenterWidth)),
-                (int)(yPosition - (clickPoint.y*2-(xPosition%2==1?0:1))
+                (int)(yPosition - (clickPoint.y*2+(clickPoint.x%2==0?1:0))
                         *relativeHalfHeight));
         boolean top = true;
         boolean left = true;
-        boolean topSide = false;
+        boolean topSide;
         if(relativePosition.y>CENTER.y){
             top = false;
             relativePosition.y-=CENTER.y;
+            Log.i(TAG, "findClickedSubsection: Bottom");
+        }
+        else{
+
+            Log.i(TAG, "findClickedSubsection: Top");
         }
         //Left or Right
         if(relativePosition.x>CENTER.x){
             left = false;
             relativePosition.x-=CENTER.x;
+            Log.i(TAG, "findClickedSubsection: Right");
         }
         else{
             relativePosition.x-=relativeAngleWidth;
+            Log.i(TAG, "findClickedSubsection: Left");
         }
         if(left^top){
             topSide = relativePosition.y<
@@ -271,20 +286,20 @@ class GameUIManager implements Runnable {
         }
         switch((top?1:0)*0b100+(left?1:0)*0b010+(topSide?1:0)){
             case 0b000:
-            case 0b011:
+            case 0b010:
                 direction = HHexDirection.Down;
                 break;
             case 0b001:
                 direction = HHexDirection.DownRight;
                 break;
-            case 0b010:
+            case 0b011:
                 direction = HHexDirection.DownLeft;
                 break;
-            case 0b100:
+            case 0b101:
             case 0b111:
                 direction = HHexDirection.Up;
                 break;
-            case 0b101:
+            case 0b100:
                 direction = HHexDirection.UpRight;
                 break;
             case 0b110:
@@ -293,6 +308,7 @@ class GameUIManager implements Runnable {
             default:
                 direction = HHexDirection.CENTER;
         }
+        Log.i(TAG, "findClickedSubsection: "+ direction.toString());
         return direction;
     }
 
@@ -302,14 +318,13 @@ class GameUIManager implements Runnable {
 
 //        if(clickPoint.equals(subsectionGroup.getHexPosition()))
 
-        if(selectingSubsection!=0){
-            MyBundle request = new MyBundle();
-            request.putInt(RequestConstants.INSTRUCTION,selectingSubsection);
+        if(selectingSubsection!=null){
+            selectingSubsection.setHex(clickPoint);
+            selectingSubsection.setSubsection(subsection);
 
-            request.putPoint(RequestConstants.DESTINATION_HEX,clickPoint);
-            request.putSubsection(RequestConstants.DESTINATION_SUBSECTION,subsection);
+            game.sendRequest(selectingSubsection);
 
-            selectingSubsection = 0;
+            selectingSubsection = null;
             infoFrame.setVisibility(View.VISIBLE);
         }
         else {
@@ -362,19 +377,18 @@ class GameUIManager implements Runnable {
     }
 
     private void subsectionClicked(Point hex, HHexDirection subsection) {
-        MyBundle request = new MyBundle();
-        request.putInt(RequestConstants.INSTRUCTION,RequestConstants.SUBSECTION_INFO);
-        request.putPoint(RequestConstants.ORIGIN_HEX,hex);
-        request.putSubsection(RequestConstants.ORIGIN_SUBSECTION,subsection);
-        game.sendRequest(new Request(request, new Request.RequestCallback() {
+        SubsectionInfoBase request = new SubsectionInfoRequest(new Request.RequestCallback() {
             @Override
             public void onComplete(MyBundle info) {
                 subsectionInfoCallback(info);
             }
-        }));
+        });
+        request.setHex(hex);
+        request.setSubsection(subsection);
+        game.sendRequest(request);
     }
 
-    private void subsectionInfoCallback(MyBundle info) {
+    void subsectionInfoCallback(MyBundle info) {
         if(info==null)return;
         subsectionInfo.setInfo(info);
         infoFrame.removeAllViews();
@@ -390,201 +404,6 @@ class GameUIManager implements Runnable {
             visiblePosition.y+=relativeHalfHeight;
         }
         return visiblePosition;
-    }
-
-
-
-    private class SubsectionInfoWrapper extends LinearLayout {
-        private static final String TAG = "Subsection Text Info";
-        //City Section
-        TextView cityHeader;
-        TextView cityInfo;
-        CityInfoWrapper cityInfoWrapper;
-
-        //Unit Section
-        TextView unitHeader;
-        LinearLayout unitList;
-        UnitInfoWrapper unitInfoWrapper;
-
-
-        public SubsectionInfoWrapper(Context context) {
-            super(context);
-            setOrientation(VERTICAL);
-            cityHeader = new TextView(context);
-            cityHeader.setText("Space Station:");
-            addView(cityHeader);
-            cityInfo = new TextView(context);
-            addView(cityInfo);
-
-            //Units
-            unitHeader = new TextView(context);
-            unitHeader.setText("Units:");
-            addView(unitHeader);
-
-            unitList = new LinearLayout(context);
-            unitList.setOrientation(VERTICAL);
-            addView(unitList);
-
-            //Unit details
-            unitInfoWrapper = new UnitInfoWrapper(context);
-        }
-
-        public void setInfo(MyBundle subsectionInfo){
-            MyBundle spaceStation =
-                    subsectionInfo.getBundle(RequestConstants.SPACE_STATION_INFO);
-
-            if(subsectionInfo
-                    .getSubsection(RequestConstants.SUBSECTION)== HHexDirection.CENTER) {
-                cityHeader.setVisibility(VISIBLE);
-                cityInfo.setVisibility(VISIBLE);
-                if (spaceStation == null) {
-                    cityInfo.setText("No City");
-                } else {
-                    final int id = spaceStation.getInt(RequestConstants.SPACE_STATION_ID);
-                    int level = spaceStation.getInt(RequestConstants.LEVEL);
-                    cityInfo.setText("City level: " + level);
-                    cityInfo.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            extraCityInfo(id);
-                        }
-                    });
-                }
-            }
-            else{
-                cityHeader.setVisibility(GONE);
-                cityInfo.setVisibility(GONE);
-            }
-
-            ArrayList<MyBundle> units =
-                    subsectionInfo.getArrayList(RequestConstants.UNIT_LIST);
-
-            unitList.removeAllViews();
-            if(units!=null&&units.size()!=0){
-                Log.i(TAG, "setInfo: "+units.size());
-                int index = 0;
-                for(MyBundle unit: units){
-                    final int id = unit.getInt(RequestConstants.UNIT_ID);
-                    final int in = index;
-                    TextView unitText = new TextView(getContext());
-                    unitText.setText("Unit level: " + unit.getInt(RequestConstants.LEVEL));
-                    unitText.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            extraUnitInfo(id,in,v);
-                        }
-                    });
-                    unitList.addView(unitText);
-                }
-            }
-            else {
-                TextView unitText = new TextView(getContext());
-                unitText.setText("No Units");
-                unitList.addView(unitText);
-            }
-
-
-        }
-
-        private void extraUnitInfo(int id,final int index,final View view) {
-            MyBundle request = new MyBundle();
-            request.putInt(RequestConstants.INSTRUCTION,RequestConstants.UNIT_INFO);
-            request.putInt(RequestConstants.UNIT_ID,id);
-            game.sendRequest(new Request(request, new Request.RequestCallback() {
-                @Override
-                public void onComplete(MyBundle info) {
-                    unitList.removeView(unitInfoWrapper);
-                    unitInfoWrapper.setView(view);
-                    unitInfoWrapper.updateInfo(info);
-                    unitList.addView(unitInfoWrapper);
-                }
-            }));
-        }
-
-        private void extraCityInfo(int id) {
-            //TODO
-        }
-
-        private class UnitInfoWrapper extends LinearLayout{
-            Button select;
-            Button move;
-            Button attack;
-            private View view;
-
-            public UnitInfoWrapper(Context context) {
-                super(context);
-                select = new Button(context);
-                select.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        //TODO send request to select this unit
-                    }
-                });
-                select.setText("Select");
-                move = new Button(context);
-                move.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        infoFrame.setVisibility(GONE);
-                        selectingSubsection = RequestConstants.UNIT_MOVE;
-
-                    }
-                });
-                move.setText("Move");
-                attack = new Button(context);
-                attack.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        infoFrame.setVisibility(GONE);
-                        selectingSubsection = RequestConstants.UNIT_ATTACK;
-
-                    }
-                });
-                attack.setText("Attack");
-                addView(select);
-                addView(move);
-                addView(attack);
-            }
-
-
-            public void updateInfo(MyBundle info) {
-                int status = info.getInt(RequestConstants.UNIT_STATUS_FLAGS);
-                if((status & RequestConstants.MOVABLE) != 0){
-                    move.setVisibility(VISIBLE);
-                }
-                else{
-                    move.setVisibility(GONE);
-                }
-                if((status & RequestConstants.CAN_ATTACK) != 0){
-                    attack.setVisibility(VISIBLE);
-                    select.setVisibility(VISIBLE);
-                    select.setText("Select");
-                }
-                else{
-                    attack.setVisibility(GONE);
-                    select.setVisibility(GONE);
-                }
-                if((status & RequestConstants.SELECTED) != 0){
-                    view.setBackgroundColor(Color.argb(100,100,100,100));
-                    select.setVisibility(VISIBLE);
-                    select.setText("Deselect");
-
-                }
-                else{
-                    view.setBackgroundColor(Color.argb(0,255,255,255));
-                }
-            }
-
-            void setView(View view){
-                this.view = view;
-            }
-        }
-
-        private class CityInfoWrapper extends LinearLayout {
-            public CityInfoWrapper(Context context) {
-                super(context);
-            }
-        }
     }
 
 

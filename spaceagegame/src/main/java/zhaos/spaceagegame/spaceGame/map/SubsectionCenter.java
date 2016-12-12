@@ -1,16 +1,11 @@
 package zhaos.spaceagegame.spaceGame.map;
 
-import android.graphics.Point;
 import android.support.annotation.NonNull;
 
-import java.util.ArrayList;
-
-import zhaos.spaceagegame.spaceGame.LocalGame;
 import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
 import zhaos.spaceagegame.spaceGame.entity.Unit;
 import zhaos.spaceagegame.util.HHexDirection;
 import zhaos.spaceagegame.request.MyBundle;
-import zhaos.spaceagegame.request.Request;
 import zhaos.spaceagegame.request.RequestConstants;
 
 /**
@@ -34,7 +29,7 @@ public class SubsectionCenter extends Subsection {
         HHexDirection current = HHexDirection.Up;
         do{
             a[current.i()] = parent.getSubsection(current); //get neighbor
-            current = HHexDirection.rotateClockwise(current); //move direction clockwise
+            current = current.clockwise(); //move direction clockwise
         }while(current!=HHexDirection.Up);
 
         return a;
@@ -43,6 +38,7 @@ public class SubsectionCenter extends Subsection {
     public SpaceStation getCity() {
         return station;
     }
+
 
     void placeCity(SpaceStation spaceStation) {
         station = spaceStation;
@@ -58,9 +54,18 @@ public class SubsectionCenter extends Subsection {
         station = city;
     }
 
+    @Override
+    public boolean moveOut(Unit u){
+        boolean success = super.moveOut(u);
+        if(getCity()!=null){
+            affiliation = getCity().getTeam();
+        }
+        return success;
+    }
 
+    @Override
     protected void getSubsectionInfo(@NonNull MyBundle bundle) {
-
+        super.getSubsectionInfo(bundle);
             MyBundle cityInfo = new MyBundle();
             SpaceStation city = getCity();
             //
@@ -68,17 +73,5 @@ public class SubsectionCenter extends Subsection {
                 city.getSpaceStationInfo(cityInfo);
                 bundle.putBundle(RequestConstants.SPACE_STATION_INFO,cityInfo);
             }
-
-        //Handle Units
-        Unit[] units = getUnits();
-        ArrayList<MyBundle> unitList = new ArrayList<>(units.length);
-        for(Unit unit: units){
-            MyBundle unitInfo = new MyBundle();
-            unitInfo.putInt(RequestConstants.LEVEL,unit.getLevel());
-            unitInfo.putInt(RequestConstants.UNIT_ID,unit.getID());
-            unitList.add(unitInfo);
-        }
-        bundle.putArrayList(RequestConstants.UNIT_LIST,unitList);
-
     }
 }

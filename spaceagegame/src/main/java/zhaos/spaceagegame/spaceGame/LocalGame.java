@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.concurrent.SynchronousQueue;
 
 import zhaos.spaceagegame.request.helperRequest.HexInfoRequest;
+import zhaos.spaceagegame.request.helperRequest.SubsectionInfoBase;
+import zhaos.spaceagegame.request.helperRequest.UnitInfoRequest;
 import zhaos.spaceagegame.spaceGame.entity.EntityHandler;
 import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
 import zhaos.spaceagegame.spaceGame.entity.Unit;
@@ -34,12 +36,6 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
     private static LocalGame instance;
     private boolean running;
     private SynchronousQueue<Request> actionQueue;
-    private final Request.RequestCallback emptyCallback = new Request.RequestCallback() {
-        @Override
-        public void onComplete(MyBundle info) {
-            //do Nothing
-        }
-    };
     private Unit[] selected = new Unit[3];
 
     public static LocalGame getInstance() {
@@ -48,7 +44,7 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
     }
 
     public static EntityHandler getEntityHandler() {
-        if(instance == null) instance = new LocalGame();
+        if (instance == null) instance = new LocalGame();
         return instance.entityHandler;
     }
 
@@ -122,7 +118,7 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
     @Override
     protected Void doInBackground(Void... params) {
         //testing init
-        initializeFactionStart(1,new Point(2,1));
+        initializeFactionStart(1, new Point(2, 1));
         //end testing
 
         running = true;
@@ -137,7 +133,7 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
             }
             action.getThisRequest();
             switch (action.getInstructioin()
-                    ){
+                    ) {
 //                &    RequestConstants.ACTION_MASK) {
 //                case RequestConstants.GAME_ACTION:
 //                    handleAction(action);
@@ -155,10 +151,10 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
                     getHexInfo(action);
                     break;
                 case RequestConstants.SUBSECTION_INFO:
-//                    getSubsectionShallowInfo(action);
+                    getSubsectionInfo(action);
                     break;
                 case RequestConstants.UNIT_INFO:
-//                    getUnitInfo(action);
+                    getUnitInfo(action);
                     break;
                 case RequestConstants.UNIT_MOVE:
                     moveUnit(action);
@@ -180,38 +176,67 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         return null;
     }
 
-    private void getHexInfo(Request action) {
-        Request.RequestCallback callback = action.getCallback();
-        if(callback == null) callback = emptyCallback;
+    //move this into the Entity Handler
+    //Or move most of the code calling
+    private void getUnitInfo(Request action) {
+        if (action.getInstructioin() != RequestConstants.UNIT_INFO) {
+            actionCompleted(action.getCallback(), null, false);
+            return;
+        }
+        MyBundle infoBundle = new MyBundle();
+        UnitInfoRequest infoRequest = (UnitInfoRequest) action;
+        Unit unit = entityHandler.getUnit(infoRequest.getUnitID());
 
-        if(action.getInstructioin() != RequestConstants.HEX_INFO){
-            actionCompleted(callback,null,false);
+        if (unit == null) {
+            actionCompleted(action.getCallback(), null, false);
+            return;
+        }
+        unit.getInfo(infoBundle);
+        actionCompleted(action.getCallback(), infoBundle, true);
+    }
+
+    private void getSubsectionInfo(Request action) {
+        if (action.getInstructioin() != RequestConstants.SUBSECTION_INFO) {
+            actionCompleted(action.getCallback(), null, false);
+            return;
+        }
+        SubsectionInfoBase infoRequest = (SubsectionInfoBase) action;
+        MyBundle subsectionInfo = new MyBundle();
+        HexTile tile = mapHandler.getHex(infoRequest.getHex());
+        if (tile == null) {
+            actionCompleted(action.getCallback(), subsectionInfo, false);
+            return;
+        }
+        tile.getSubsectionInfo(infoRequest, subsectionInfo);
+
+        actionCompleted(action.getCallback(),
+                subsectionInfo,
+                true);
+    }
+
+    private void getHexInfo(Request action) {
+        if (action.getInstructioin() != RequestConstants.HEX_INFO) {
+            actionCompleted(action.getCallback(), null, false);
             return;
         }
         HexInfoRequest infoRequest = (HexInfoRequest) action;
         MyBundle hexInfo = new MyBundle();
         HexTile tile = mapHandler.getHex(infoRequest.getHex());
-        if(tile==null){
-            actionCompleted(callback,hexInfo,false);
+        if (tile == null) {
+            actionCompleted(action.getCallback(), hexInfo, false);
             return;
         }
         tile.getInfo(hexInfo);
 
-        actionCompleted(callback,
+        actionCompleted(action.getCallback(),
                 hexInfo,
                 true);
 
     }
 
-    private void handleAction(Request action) {
-
-    }
-
-
     private void unitAttack(Request action) {
         MyBundle bundle = action.getThisRequest();
         Request.RequestCallback callback = action.getCallback();
-        if (callback == null) callback = emptyCallback;
 
         Point hexPos = bundle.getPoint(RequestConstants.DESTINATION_HEX);
         HHexDirection subsectionDir = bundle
@@ -231,43 +256,35 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
     private void unitSelect(Request action) {
         MyBundle bundle = action.getThisRequest();
         Request.RequestCallback callback = action.getCallback();
-        if (callback == null) callback = emptyCallback;
 
         Unit currentUnit = getUnit(bundle.getInt(RequestConstants.UNIT_ID));
-        if(currentUnit==null){
+        if (currentUnit == null) {
             actionCompleted(callback, bundle, false);
             return;
         }
-        if(selected[0]!=null) {
-            if (selected[0].getHexTile() != currentUnit.getHexTile()) {
-                for (int i = 0; i < 2; i++)
-                    selected[i] = null;
-            }
-            if (selected[0].getSubsection() != currentUnit.getSubsection()) {
+        if (selected[0] != null) {
+            if (!selected[0].getSubsection().equals(currentUnit.getSubsection())) {
                 for (int i = 0; i < 2; i++)
                     selected[i] = null;
             }
         }
-
-
-        for(int i = 0; i<3;i++) {
+        for (int i = 0; i < 3; i++) {
             if (selected[i] == null) {
                 selected[i] = currentUnit;
                 break;
             }
         }
-
         actionCompleted(callback, bundle, true);
     }
+
     private void moveUnit(Request action) {
         MyBundle bundle = action.getThisRequest();
         Request.RequestCallback callback = action.getCallback();
-        if (callback == null) callback = emptyCallback;
 
-        int faction = bundle.getInt(RequestConstants.FACTION_ID);
+//        int faction = bundle.getInt(RequestConstants.FACTION_ID);
         int unitID = bundle.getInt(RequestConstants.UNIT_ID);
         Unit unit = getUnit(unitID);
-        if (unit.getAffiliation() != faction) return;
+//        if (unit.getTeam() != faction) return;
 
         selectUnit(unit);
         Subsection[] valid = moves();
@@ -275,44 +292,38 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         HHexDirection destinationSubsection
                 = bundle.getSubsection(RequestConstants.DESTINATION_SUBSECTION);
 
-        Point originHex = bundle.getPoint(RequestConstants.ORIGIN_HEX);
-        HHexDirection originSubsection = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
-
-        if (unit.getHexTile().getPosition() != originHex) {
-            actionCompleted(callback, bundle, false);
-            return;
-        }
-        if (unit.getSubsection().getPosition() != originSubsection) {
-            actionCompleted(callback, bundle, false);
-            return;
-        }
-
+//        Point originHex = bundle.getPoint(RequestConstants.ORIGIN_HEX);
+//        HHexDirection originSubsection = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
+//
+//        if (unit.getHexTile().getPosition() != originHex) {
+//            actionCompleted(callback, bundle, false);
+//            return;
+//        }
+//        if (unit.getSubsection().getPosition() != originSubsection) {
+//            actionCompleted(callback, bundle, false);
+//            return;
+//        }
 
         for (Subsection section : valid) {
-            if (section.getParentPosition() == destinationHex) {
-                if (section.getPosition() == destinationSubsection) {
-                    if (section.getAffiliation() == faction || section.getAffiliation() == 0) {
-                        getHex(originHex).getSubsection(originSubsection).moveOut(unit);
-                        section.moveIn(unit);
-                        break;
-                    }
+            if (section == null) continue;
+            Log.i(TAG, "moveUnit: " + section.getParentPosition() + " " + destinationHex);
+            if (section.getParentPosition().equals(destinationHex)) {
+                Log.i(TAG, "moveUnit: " + section.getPosition() + " " + destinationSubsection);
+                if (section.getPosition().i() == destinationSubsection.i()) {
+                    //            if (section.getTeam() == faction || section.getTeam() == 0)
+                    section.moveIn(unit);
+                    break;
+                    //          }
                 }
             }
         }
-
         actionCompleted(callback, bundle, true);
     }
-
 
 
     private void getGameInfo(Request action) {
 
     }
-
-
-
-
-
 
     private Unit getUnit(int unitID) {
         return entityHandler.getUnit(unitID);
@@ -369,50 +380,42 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
     }
 
     private Subsection[] moves() {
-        ArrayList<Subsection> a = new ArrayList<>();
-        int team = activeUnit.getAffiliation();
+        ArrayList<Subsection> a = new ArrayList<Subsection>();
+        int team = activeUnit.getTeam();
         int tile;
         for (Subsection s : activeUnit.getSubsection().getNeighbors()) {
+            if (s == null) continue;
             tile = s.getAffiliation();
-            if (tile == team || tile == 0)
+            if (tile == team || tile == -1) {
                 a.add(s);
+                Log.i(TAG, "moves: " + team + " " + tile);
+            }
         }
-        return (Subsection[]) a.toArray();
+        return a.toArray(new Subsection[6]);
     }
 
-    public Subsection[] attacks() {
-        ArrayList<Subsection> a = new ArrayList<>();
-        int team = activeUnit.getAffiliation();
-        int tile;
-        for (Subsection s : activeUnit.getSubsection().getNeighbors()) {
-            tile = s.getAffiliation();
-            if (tile == team || tile == 0)
-                continue;
-            a.add(s);
-        }
-        return (Subsection[]) a.toArray();
-    }
+    private SpaceStation registerSpaceStation(int faction, SubsectionCenter subsection) {
 
-    public Unit newUnit(SpaceStation station){
-        return entityHandler.newUnit(station);
-    }
-
-    public SpaceStation registerSpaceStation(int faction,HexTile hexTile){
-        return entityHandler.newSpaceStation(faction,hexTile);
+        return entityHandler.newSpaceStation(faction, subsection);
     }
 
     //methods for Team Controller to give actions
-    public void sendRequest(Request gameAction) {
-        //Not sure if this necessarily is thread safe or not
-        actionQueue.offer(gameAction);
+    public void sendRequest(final Request gameAction) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //Not sure if this necessarily is thread safe or not
+                actionQueue.offer(gameAction);
+            }
+        }).run();
     }
 
-    public void stopGame(){
+    public void stopGame() {
         running = false;
     }
 
-     public void actionCompleted(final Request.RequestCallback callback,
-                                 final MyBundle info, boolean success) {
+    public void actionCompleted(final Request.RequestCallback callback,
+                                final MyBundle info, boolean success) {
         info.putBoolean(RequestConstants.SUCCESS, success);
         mainThread.post(new Runnable() {
             @Override
@@ -422,9 +425,8 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         });
     }
 
-
     //Phases
-    protected void resetPhase() {
+    private void resetPhase() {
         for (HexTile h : getTiles()) {
             for (Subsection s : h.getSubsections()) {
                 s.resetInfo();
@@ -433,16 +435,14 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         calculateAreaOfInfluence();
     }
 
-
     //Auxiliary methods for internal use
     private void calculateAreaOfInfluence() {
         for (TeamController t : teams) {
             for (Unit u : t.getUnits()) {
-                u.getSubsection().updateInfluence(6, u.getAffiliation());
+                u.getSubsection().updateInfluence(6, u.getTeam());
             }
         }
     }
-
 
     //Initialize HHexDirection enum translation methods
     private void initializeDirections() {
@@ -499,16 +499,18 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         });
     }
 
-
-
-    private void initializeFactionStart(int faction,Point startingHex){
+    private void initializeFactionStart(int faction, Point startingHex) {
         HexTile start = getHex(startingHex);
-        if(start == null) return;
-        start.placeCity(registerSpaceStation(faction,start));
+        if (start == null) return;
+        start.placeCity(
+                registerSpaceStation(
+                        faction,
+                        (SubsectionCenter)start.getSubsection(HHexDirection.CENTER)));
         SpaceStation city =
-        ((SubsectionCenter)start.getSubsection(HHexDirection.CENTER))
-                .getCity();
+                ((SubsectionCenter) start.getSubsection(HHexDirection.CENTER))
+                        .getCity();
+        entityHandler.newUnit(city);
+        entityHandler.newUnit(city);
 
     }
-
 }

@@ -1,10 +1,6 @@
 package zhaos.spaceagegame.spaceGame.entity;
 
-import zhaos.spaceagegame.spaceGame.LocalGame;
-import zhaos.spaceagegame.spaceGame.map.HexTile;
 import zhaos.spaceagegame.spaceGame.map.Subsection;
-import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
-import zhaos.spaceagegame.util.HHexDirection;
 import zhaos.spaceagegame.request.MyBundle;
 import zhaos.spaceagegame.request.RequestConstants;
 
@@ -14,62 +10,44 @@ import zhaos.spaceagegame.request.RequestConstants;
 
 //Base class for anything that can take an action during the game
 
-public class Unit {
-    //0 for neutral anything else is on a team
-    private int factionNumber;
+public class Unit extends Entity{
+    private static final int TYPE = 1;
 
-    //Level 0 means the unit is dead
-    private int level;
+    //remember what is held
     private int heldPodID;
 
     //Generally means actions remaining
     private int actionPoints;
     private boolean skippedMainPhase;
 
-    //remember position
-    private HexTile hexTile;
-    private Subsection subsection;
-    private LocalGame game;
+    //Might hold a construction Pod
     private ConstructionPod heldConstructionPod;
-    private int ID;
 
     Unit(SpaceStation s,int ID){
-        factionNumber = s.getAffiliation();
-        this.ID = ID;
-        level = 1;
-        hexTile = s.getHexTile();
-        subsection = hexTile.getSubsection(HHexDirection.CENTER);
-        ((SubsectionCenter)subsection).addUnit(this);
+        super(ID,s.getTeam(),s.getSubsection());
         actionPoints=3;
     }
 
-    public void mainResetPhase(){
+    @Override
+    public int getType() {
+        return TYPE;
+    }
 
+    @Override
+    public void resetPhase() {
         actionPoints = 3;
+    }
+
+    @Override
+    public void getInfo(MyBundle bundle) {
+        super.getInfo(bundle);
+        bundle.putInt(RequestConstants.UNIT_STATUS_FLAGS,
+                ((getSubsection().canMove() ? 1 : 0) * RequestConstants.MOVABLE) |
+                        ((getSubsection().canAttack() ? 1 : 0) * RequestConstants.CAN_ATTACK));
     }
 
     void combatResetPhase(){
         actionPoints = 1;
-    }
-
-    public boolean canMove(){
-        return actionPoints>0;
-    }
-
-    public int remainingActions(){
-        return actionPoints;
-    }
-
-    public int getAffiliation() {
-        return factionNumber;
-    }
-
-    public HexTile getHexTile(){
-        return hexTile;
-    }
-
-    public int getLevel(){
-        return level;
     }
 
     public Subsection getSubsection(){
@@ -77,8 +55,7 @@ public class Unit {
     }
 
 
-    public void setSubsection(HexTile tile, Subsection subsection){
-        hexTile = tile;
+    public void setSubsection(Subsection subsection){
         this.subsection = subsection;
     }
 
@@ -91,14 +68,4 @@ public class Unit {
         heldConstructionPod = constructionPod;
     }
 
-    public int getID() {
-        return ID;
-    }
-
-    public void getInfo(MyBundle bundle) {
-        bundle.putPoint(RequestConstants.ORIGIN_HEX, getHexTile().getPosition());
-        bundle.putInt(RequestConstants.LEVEL, getLevel());
-        bundle.putInt(RequestConstants.FACTION_ID, getAffiliation());
-        bundle.putInt(RequestConstants.UNIT_ID, getID());
-    }
 }

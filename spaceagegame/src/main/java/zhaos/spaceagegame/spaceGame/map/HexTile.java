@@ -4,6 +4,7 @@ import android.graphics.Point;
 
 import java.util.ArrayList;
 
+import zhaos.spaceagegame.request.helperRequest.SubsectionInfoBase;
 import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
 import zhaos.spaceagegame.util.HHexDirection;
 import zhaos.spaceagegame.request.MyBundle;
@@ -52,25 +53,67 @@ public class HexTile {
         position = newPosition;
     }
 
-    private void setNeighbor(HexTile neighbor,HHexDirection direction){
-        neighbor.reciprocateNeighbor(this,direction.inverse());
+    boolean setNeighbor(HexTile neighbor,HHexDirection direction){
+        if(neighbors[direction.i()]!=null)
+            return false;
         neighbors[direction.i()] = neighbor;
-        HexTile temp;
-        if(neighbors[direction.counterClockwise().i()]==null) {
-            temp = neighbor.getNeighbor(direction.inverse().clockwise());
-            if (temp != null)
-                setNeighbor(temp, direction.counterClockwise());
-        }
-        if(neighbors[direction.clockwise().i()]==null)
-        {
-            temp = neighbor.getNeighbor(direction.inverse().counterClockwise());
-            if (temp != null)
-                setNeighbor(temp, direction.clockwise());
-        }
+        return true;
     }
 
-    private void reciprocateNeighbor(HexTile neighbor,HHexDirection direction){
-        neighbors[direction.i()] = neighbor;
+
+    void linkMapRecursion(HexTile neighbor,final HHexDirection direction) {
+        if(!setNeighbor(neighbor,direction))
+            return;
+        neighbor.linkMapRecursion(this,direction.inverse());
+        HHexDirection facing = direction;
+
+        //Propagate clockwise
+        facing = direction;
+        for (int i = 0; i < 6; i++) {
+            //We know our neighbor in the direction that we're facing
+            //If the next neighbor is unknown
+            if (neighbors[facing.clockwise().i()] == null) {
+                //ask the neighbor we know
+                HexTile nextNeighbor = neighbors[facing.i()]
+                        //if they know the neighbor in that direction
+                        .getNeighbor(facing.inverse().counterClockwise());
+                //If they don't know stop the entire check
+                //otherwise we won't know the neighbor in the facing direction
+                if (nextNeighbor == null) break;
+                //Set the neighbor first
+                setNeighbor(nextNeighbor,facing.clockwise());
+                //so it doesn't propagate back
+                nextNeighbor.linkMapRecursion(this,
+                        //and give it the opposite direction that we took
+                        facing.clockwise().inverse());
+            }
+            facing = facing.clockwise();
+        }
+
+        //Propagate counter clockwise
+        //in case a full round isn't made
+        facing = direction;
+        for (int i = 0; i < 6; i++) {
+            //We know our neighbor in the direction that we're facing
+            //If the next neighbor is unknown
+            if (neighbors[facing.counterClockwise().i()] == null) {
+                //ask the neighbor we know
+                HexTile nextNeighbor = neighbors[facing.i()]
+                        //if they know the neighbor in that direction
+                        .getNeighbor(facing.inverse().clockwise());
+                //If they don't know stop the entire check
+                //otherwise we won't know the neighbor in the facing direction
+                if (nextNeighbor == null) break;
+                //Set the neighbor first
+                setNeighbor(nextNeighbor,facing.counterClockwise());
+                //so it doesn't propagate back
+                nextNeighbor.linkMapRecursion(this,
+                        //and give it the opposite direction that we took
+                        facing.counterClockwise().inverse());
+            }
+            facing = facing.counterClockwise();
+        }
+
     }
 
     HexTile getNeighbor(HHexDirection dir){
@@ -110,5 +153,9 @@ public class HexTile {
         }
         bundle.putArrayList(RequestConstants.SUBSECTION_LIST, subsectionList);
 
+    }
+
+    public void getSubsectionInfo(SubsectionInfoBase action, MyBundle subsectionInfo) {
+        getSubsection(action.getSubsection()).getSubsectionInfo(subsectionInfo);
     }
 }

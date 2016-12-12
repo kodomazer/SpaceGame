@@ -1,10 +1,20 @@
 package zhaos.spaceagegame.request;
 
+import android.support.annotation.NonNull;
+
 /**
  * Created by kodomazer on 10/22/2016.
  */
 
 public class Request {
+
+    private final Request.RequestCallback emptyCallback = new Request.RequestCallback() {
+        @Override
+        public void onComplete(MyBundle info) {
+            //do Nothing
+        }
+    };
+
     protected MyBundle thisRequest;
     private RequestCallback callback;
 
@@ -37,7 +47,9 @@ public class Request {
 
     }
 
-    public RequestCallback getCallback() {
+    public @NonNull RequestCallback getCallback() {
+        if(callback==null)
+            return emptyCallback;
         return callback;
     }
 }

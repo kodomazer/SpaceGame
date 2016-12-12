@@ -22,7 +22,7 @@ public class Subsection {
 
 
     //The Part of the tile the subsection is part of
-    protected HHexDirection position;
+    private HHexDirection position;
 
     protected Collection<Unit> occupants;
     protected Collection<ConstructionPod> pods;
@@ -50,23 +50,25 @@ public class Subsection {
                 if(origin==subsections)
                     neighbor = true;
             }
-        else
+        else {
+            //in case adding unit
             neighbor = true;
+        }
 
         if(!neighbor)return false;
         if(affiliation==-1)
-            affiliation = e.getAffiliation();
+            affiliation = e.getTeam();
 
-        if(e.getAffiliation()==affiliation){
+        if(e.getTeam()==affiliation){
             occupants.add(e);
             if(origin!=null)
                 origin.moveOut(e);
             ConstructionPod pod = e.constructionPod();
             if(pod!=null){
                 e.getSubsection().moveOut(pod);
-                pod.setPosition(parent,this);
+                pod.setPosition(this);
             }
-            e.setSubsection(parent,this);
+            e.setSubsection(this);
             return true;
         }
         return false;
@@ -76,13 +78,13 @@ public class Subsection {
         boolean success = occupants.remove(e);
 
         if(occupants.size()==0){
-            affiliation = 0;
+            affiliation = -1;
         }
 
         return success;
     }
 
-    public boolean moveOut(ConstructionPod c){
+    private boolean moveOut(ConstructionPod c){
         return pods.remove(c);
     }
 
@@ -104,11 +106,13 @@ public class Subsection {
         //Center subsection of same hexTile
         a[0]=parent.getSubsection(HHexDirection.CENTER);
         //Adjacent in the clockwise direction
-        a[1]=parent.getSubsection(HHexDirection.rotateClockwise(position));
+        a[1]=parent.getSubsection(position.clockwise());
         //Adjacent on the other side in the counterclockwise direction
-        a[2]=parent.getSubsection(HHexDirection.rotateCounterClockwise(position));
+        a[2]=parent.getSubsection(position.counterClockwise());
         //subsection in neighboring Hex
-        a[3]=parent.getNeighbor(position).getSubsection(HHexDirection.flip(position));
+        HexTile neighbor = parent.getNeighbor(position);
+        if(neighbor!=null)
+            a[3]=neighbor.getSubsection(HHexDirection.flip(position));
         return a;
     }
 
@@ -119,6 +123,11 @@ public class Subsection {
     public void resetInfo(){
         for(int i = 0;i<influenceLevels.length;i++){
             influenceLevels[i]=0;
+        }
+        if(getAffiliation()==-1){
+            if(getUnits().length!=0){
+                affiliation = getUnits()[0].getTeam();
+            }
         }
     }
 
@@ -138,10 +147,24 @@ public class Subsection {
         return parent;
     }
 
-    public Unit[] getUnits() {
+    private Unit[] getUnits() {
         Unit[] units = new Unit[occupants.size()];
         occupants.toArray(units);
         return units;
+    }
+
+    protected void getSubsectionInfo(@NonNull MyBundle bundle) {
+        //Handle Units
+        Unit[] units = getUnits();
+        ArrayList<MyBundle> unitList = new ArrayList<>(units.length);
+        for(Unit unit: units){
+            MyBundle unitInfo = new MyBundle();
+            unitInfo.putInt(RequestConstants.LEVEL,unit.getLevel());
+            unitInfo.putInt(RequestConstants.UNIT_ID,unit.getID());
+            unitList.add(unitInfo);
+        }
+        bundle.putArrayList(RequestConstants.UNIT_LIST,unitList);
+        getSubsectionShallowInfo(bundle);
     }
 
     void getSubsectionShallowInfo(@NonNull MyBundle bundle) {
@@ -150,15 +173,21 @@ public class Subsection {
                 position);
         bundle.putInt(RequestConstants.FACTION_ID,
                 affiliation);
-        //Handle Units
-        Unit[] units = getUnits();
-        ArrayList<MyBundle> unitList = new ArrayList<>(units.length);
-        for(Unit unit: units){
-            MyBundle unitInfo = new MyBundle();
-            unit.getInfo(unitInfo);
-            unitList.add(unitInfo);
-        }
-        bundle.putArrayList(RequestConstants.UNIT_LIST,unitList);
     }
 
+    public boolean canMove(){
+        for (Subsection sub: getNeighbors()){
+            if(sub.getAffiliation()==getAffiliation() || sub.getAffiliation()==-1)
+                return true;
+        }
+        return false;
+    }
+
+    public boolean canAttack(){
+        for(Subsection sub: getNeighbors()){
+            if(sub.getAffiliation()!=getAffiliation() && sub.getAffiliation()!= -1)
+                return true;
+        }
+        return false;
+    }
 }

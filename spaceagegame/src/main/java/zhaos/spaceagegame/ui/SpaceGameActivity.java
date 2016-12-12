@@ -55,7 +55,7 @@ public class SpaceGameActivity extends Activity{
         scale = 1;
 
         if(old) {
-            setContentView(R.layout.empty);
+            setContentView(R.layout.agregate_game_screen);
 
             gameHandler = new GameUIManager(this);
             gameHandler.run();

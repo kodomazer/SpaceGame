@@ -1,6 +1,7 @@
 package zhaos.spaceagegame.spaceGame.map;
 
 import android.graphics.Point;
+import android.support.annotation.NonNull;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,10 +42,11 @@ public final class MapHandler {
         return map.values();
     }
 
-    private void generateTile(Point position){
-        if(getHex(position)!=null)return;
+    private @NonNull HexTile generateTile(Point position){
+        if(getHex(position)!=null)return getHex(position);
         HexTile hex = new HexTile(position);
         map.put(new Point(position),hex);
+        return hex;
     }
 
     //Initialize map
@@ -52,20 +54,38 @@ public final class MapHandler {
         map = new HashMap<>();
         //center is at (radius*2,radius)
         Point current = new Point(radius, radius);
-        HHexDirection facing = HHexDirection.DownLeft;
-
+        HHexDirection facing = HHexDirection.UpRight;
+        HexTile last;
+        HexTile first = null;
+        HexTile cur = null;
         //Generate map ring by ring, going outward
         for (int i = 1; i <= radius; i++) {
             //Move up once to move out one ring
             HHexDirection.Up.translatePoint(current);
             //Go each direction once, switch the direction of travel each loop
-            for (int j = 0; j < 6; j++, facing = HHexDirection.rotateClockwise(facing))
+            for (int j = 0; j < 6; j++) {
+                facing = facing.clockwise();
                 //Translate in the direction a number of times equal to the radius
                 //Radius is equal to side length
-                for (int k = 0; k < i; k++, facing.translatePoint(current))
+                for (int k = 0; k < i; k++) {
                     //Add a new hex tile to the map
                     //Deep copy of the Point because the current point will change
-                    generateTile(current);
+                    last = cur;
+                    cur = generateTile(current);
+                    if(j+k==0){
+                        if(first!=null)
+                            first.linkMapRecursion(cur,HHexDirection.Up);
+                        first = cur;
+                    }
+                    else if (last != null) {
+                        last.linkMapRecursion(cur,k<1?facing.counterClockwise():facing);
+
+                    }
+                    facing.translatePoint(current);
+                }
+            }
+            cur.linkMapRecursion(first,facing);
+            cur = first;
         }
     }
 

@@ -4,9 +4,7 @@ import android.util.ArrayMap;
 
 import java.util.Map;
 
-import zhaos.spaceagegame.spaceGame.map.HexTile;
-import zhaos.spaceagegame.request.Request;
-import zhaos.spaceagegame.request.RequestConstants;
+import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
 
 /**
  * Created by kodomazer on 12/4/2016.
@@ -45,17 +43,27 @@ public class EntityHandler {
         if(unit == null)return null;
         return unit;
     }
+
+    public ConstructionPod getPod(int id){
+        //eventually Collapse all collectioins into one.
+        Entity entity = pods.get(id);
+        if(entity.getType() == ConstructionPod.TYPE){
+            return (ConstructionPod) entity;
+        }
+        return null;
+    }
     
     //Factory Creations
     public Unit newUnit(SpaceStation station){
         Unit unit = new Unit(station,lastUnitID);
         units.put(lastUnitID,unit);
         lastUnitID++;
+        station.getSubsection().addUnit(unit);
         return unit;
     }
 
-    public SpaceStation newSpaceStation(int faction, HexTile hexTile) {
-        SpaceStation spaceStation = new SpaceStation(this,faction,hexTile,lastSpaceStationID);
+    public SpaceStation newSpaceStation(int faction, SubsectionCenter subsection) {
+        SpaceStation spaceStation = new SpaceStation(lastSpaceStationID, faction, this, subsection);
         spaceStations.put(lastSpaceStationID,spaceStation);
         lastSpaceStationID++;
         return spaceStation;
@@ -68,40 +76,4 @@ public class EntityHandler {
         return pod;
     }
 
-    public void handleAction(Request action) {
-
-        switch (action.getThisRequest().getInt(RequestConstants.INSTRUCTION)
-                & RequestConstants.HANDLER_MASK) {
-            case RequestConstants.UNIT_HANDLER:
-                delegateToUnit(action);
-                break;
-            case RequestConstants.CITY_HANDLER:
-                delegateToCity(action);
-                break;
-            case RequestConstants.POD_HANDLER:
-                delegateToPod(action);
-                break;
-            default:
-                switch (action.getThisRequest().getInt(RequestConstants.INSTRUCTION)) {
-                    default:
-                        //nothing so far
-                }
-        }
-    }
-
-    private void delegateToUnit(Request action) {
-        //TODO: Find Unit and pass on the action
-    }
-
-    private void delegateToCity(Request action) {
-        //TODO: Find the City and pass on the action
-        SpaceStation spaceStation = getCity(action.getThisRequest()
-                .getInt(RequestConstants.SPACE_STATION_ID));
-        spaceStation.handleAction(action);
-    }
-
-
-    private void delegateToPod(Request action) {
-        //TODO: Find the Pod and pass on the action
-    }
 }

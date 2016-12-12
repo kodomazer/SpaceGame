@@ -1,32 +1,22 @@
 package zhaos.spaceagegame.spaceGame.entity;
 
-import zhaos.spaceagegame.spaceGame.map.HexTile;
 import zhaos.spaceagegame.request.MyBundle;
 import zhaos.spaceagegame.request.Request;
 import zhaos.spaceagegame.request.RequestConstants;
+import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
 
 /**
  * Created by kodomazer on 9/27/2016.
  */
-public class SpaceStation{
+public class SpaceStation extends Entity{
+    private static final int TYPE = 2;
 
-    private int _ID;
-    private int level;
-    private int actions;
-    private int affiliation;
-
-    private HexTile hexTile;
+    //Needs to know to make more entities
     private EntityHandler parent;
 
-    SpaceStation(EntityHandler entityHandler,
-                 int faction,
-                 HexTile hexTile,
-                 int ID){
-        level = 1;
-        this.affiliation = faction;
-        this.hexTile = hexTile;
-        this._ID = ID;
-
+    SpaceStation(int ID, int faction, EntityHandler entityHandler,
+                 SubsectionCenter subsection){
+        super(ID,faction,subsection);
         parent = entityHandler;
     }
 
@@ -35,32 +25,33 @@ public class SpaceStation{
         bundle.putInt(RequestConstants.LEVEL,getLevel());
     }
 
-    int getAffiliation(){
-        return affiliation;
-    }
-
-    HexTile getHexTile(){
-        return hexTile;
-    }
-
     private void createUnit(){
-        Unit unit = parent.newUnit(this);
+        //TODO: Check for supplies
+        Unit unit = getParent().newUnit(this);
     }
 
-    private void createPod(){
-        ConstructionPod pod = parent.newConstructionPod(this);
+    private void createPod() {
+        //TODO: Check for Supplies
+        ConstructionPod pod = getParent().newConstructionPod(this);
     }
 
-    int getID() {
-        return _ID;
+    void upgradeUnit(Unit unit){
+        //TODO check for supplies and then upgrade
     }
 
-    int getLevel() {
-        return level;
+    @Override
+    public SubsectionCenter getSubsection(){
+        return (SubsectionCenter) super.getSubsection();
     }
 
-    void upgrade() {
-        level++;
+    @Override
+    public int getType() {
+        return TYPE;
+    }
+
+    @Override
+    public void resetPhase() {
+
     }
 
     void handleAction(Request action) {
@@ -72,7 +63,10 @@ public class SpaceStation{
             case RequestConstants.CITY_PROD_POD:
                 createPod();
                 break;
-
         }
+    }
+
+    public EntityHandler getParent() {
+        return parent;
     }
 }

@@ -1,6 +1,5 @@
 package zhaos.spaceagegame.spaceGame.entity;
 
-import zhaos.spaceagegame.spaceGame.map.HexTile;
 import zhaos.spaceagegame.spaceGame.map.Subsection;
 import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
 import zhaos.spaceagegame.util.HHexDirection;
@@ -8,36 +7,41 @@ import zhaos.spaceagegame.util.HHexDirection;
 /**
  * Created by kodomazer on 9/27/2016.
  */
-public class ConstructionPod {
+public class ConstructionPod extends Entity{
     private String TAG = "Cons_Pod";
-
-    private HexTile hexTile;
-    private Subsection subsection;
-
-    private int ID;
-
-    public int actionCounter;
+    public final static int TYPE = 3;
 
     ConstructionPod(SpaceStation station,int ID){
-        this.ID = ID;
-        hexTile = station.getHexTile();
-        subsection = hexTile.getSubsection(HHexDirection.CENTER);
+        super(ID,0,station.getSubsection());
     }
 
+    @Override
+    public int getType() {
+        return TYPE;
+    }
 
-    public void setPosition(HexTile parent, Subsection subsection) {
-        hexTile = parent;
+    @Override
+    public void resetPhase() {
+
+    }
+
+    @Override
+    public int getTeam(){
+        return -1;
+    }
+
+    public void setPosition(Subsection subsection) {
+        absoluteDamage(1);
         this.subsection = subsection;
     }
 
     void addAction() {
         if (subsection.getPosition() != HHexDirection.CENTER) return;
 
-        actionCounter += 1;
-        if (actionCounter == 3) {
+        upgrade();
+        if (getLevel() == 4) {
             ((SubsectionCenter)subsection).getCity();
             //TODO: add in City Building/Upgrade code
         }
     }
-
 }

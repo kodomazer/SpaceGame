@@ -1,5 +1,7 @@
 package zhaos.spaceagegame.spaceGame.entity;
 
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.RequestConstants;
 import zhaos.spaceagegame.spaceGame.map.Subsection;
 
 /**
@@ -10,28 +12,71 @@ import zhaos.spaceagegame.spaceGame.map.Subsection;
 
 public abstract class Entity {
     //Teams start from ID 1
-    protected int teamID;
+    private int teamID;
+
+    private int ID;
 
     //Level 0 means the unit is dead
-    protected int level;
+    private int level;
 
     //Generally means actions remaining
-    protected int actionPoints;
+    private int actionPoints;
 
     //The subsection the Entity resides in
-    protected Subsection parent;
+    protected Subsection subsection;
 
+    Entity(int ID,int team,Subsection subsection){
+        this.ID = ID;
+        teamID = team;
+        this.subsection = subsection;
 
-    public int getAffiliation() {
+        level = 1;
+    }
+
+    //Entity Type identifier for casting in the Entity Manager
+    public abstract int getType();
+
+    //called on reset
+    public abstract void resetPhase();
+
+    public Subsection getSubsection(){
+        return subsection;
+    }
+
+    public int getTeam() {
         return teamID;
+    }
+
+    public int getID(){
+        return ID;
     }
 
     public int getLevel(){
         return level;
     }
 
+    protected void upgrade(){
+        level++;
+    }
+
+    protected void damage(){
+        damage(1);
+    }
+
+    protected void damage(int damage){
+        level -= damage;
+    }
+
+    protected void absoluteDamage(int level){
+        this.level = level;
+    }
+
     public int remainingActions(){
         return actionPoints;
+    }
+
+    protected void setActionPoints(int points){
+        actionPoints = points;
     }
 
     protected boolean useAction(){
@@ -42,6 +87,14 @@ public abstract class Entity {
         return false;
     }
 
+
+    public void getInfo(MyBundle bundle){
+        bundle.putPoint(RequestConstants.ORIGIN_HEX, getSubsection().getParentPosition());
+        bundle.putSubsection(RequestConstants.SUBSECTION,getSubsection().getPosition());
+        bundle.putInt(RequestConstants.LEVEL, getLevel());
+        bundle.putInt(RequestConstants.FACTION_ID, getTeam());
+        bundle.putInt(RequestConstants.UNIT_ID, getID());
+    }
 
 
 

@@ -131,12 +131,6 @@ public enum HHexDirection {
         return toString(getDirection(direction));
     }
 
-    public static HHexDirection rotateClockwise(HHexDirection cur){
-        return getDirection((cur.i()+1)%6);
-    }
-    public static HHexDirection rotateCounterClockwise(HHexDirection cur){
-        return getDirection((cur.i()+5)%6);
-    }
     public static HHexDirection flip(HHexDirection cur){
         return getDirection((cur.i()+3)%6);
     }
