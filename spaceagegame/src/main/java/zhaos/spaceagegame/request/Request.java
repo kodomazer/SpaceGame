@@ -21,10 +21,7 @@ public class Request {
     public Request(MyBundle request, RequestCallback callback){
         thisRequest = request;
         this.callback = callback;
-
     }
-
-
 
     public interface RequestCallback {
         void onComplete(MyBundle info);

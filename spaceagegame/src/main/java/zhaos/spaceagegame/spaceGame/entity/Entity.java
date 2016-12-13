@@ -37,7 +37,9 @@ public abstract class Entity {
     public abstract int getType();
 
     //called on reset
-    public abstract void resetPhase();
+    //Returns false if reset properly
+    //returns true if extra actions needed (e.g. Construction Pods used)
+    public abstract boolean resetPhase();
 
     public Subsection getSubsection(){
         return subsection;

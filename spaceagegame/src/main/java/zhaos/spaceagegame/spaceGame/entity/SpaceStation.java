@@ -13,6 +13,7 @@ public class SpaceStation extends Entity{
 
     //Needs to know to make more entities
     private EntityHandler parent;
+    private int energy;
 
     SpaceStation(int ID, int faction, EntityHandler entityHandler,
                  SubsectionCenter subsection){
@@ -25,14 +26,16 @@ public class SpaceStation extends Entity{
         bundle.putInt(RequestConstants.LEVEL,getLevel());
     }
 
-    private void createUnit(){
+    boolean createUnit(){
         //TODO: Check for supplies
         Unit unit = getParent().newUnit(this);
+        return true;
     }
 
-    private void createPod() {
+    boolean createPod() {
         //TODO: Check for Supplies
         ConstructionPod pod = getParent().newConstructionPod(this);
+        return true;
     }
 
     void upgradeUnit(Unit unit){
@@ -50,20 +53,11 @@ public class SpaceStation extends Entity{
     }
 
     @Override
-    public void resetPhase() {
-
-    }
-
-    void handleAction(Request action) {
-        MyBundle bundle = action.getThisRequest();
-        switch (bundle.getInt(RequestConstants.INSTRUCTION)){
-            case RequestConstants.CITY_PROD_UNIT:
-                createUnit();
-                break;
-            case RequestConstants.CITY_PROD_POD:
-                createPod();
-                break;
-        }
+    public boolean resetPhase() {
+        //Energy per turn based on level in lieu of proper collection
+        energy += getLevel();
+        setActionPoints(getLevel());
+        return false;
     }
 
     public EntityHandler getParent() {

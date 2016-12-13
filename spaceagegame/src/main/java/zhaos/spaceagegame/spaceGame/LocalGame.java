@@ -4,26 +4,20 @@ package zhaos.spaceagegame.spaceGame;
 import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.SynchronousQueue;
 
-import zhaos.spaceagegame.request.helperRequest.HexInfoRequest;
-import zhaos.spaceagegame.request.helperRequest.SubsectionInfoBase;
-import zhaos.spaceagegame.request.helperRequest.UnitInfoRequest;
-import zhaos.spaceagegame.spaceGame.entity.EntityHandler;
-import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
-import zhaos.spaceagegame.spaceGame.entity.Unit;
-import zhaos.spaceagegame.spaceGame.map.HexTile;
-import zhaos.spaceagegame.spaceGame.map.MapHandler;
-import zhaos.spaceagegame.spaceGame.map.Subsection;
-import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
 import zhaos.spaceagegame.request.MyBundle;
 import zhaos.spaceagegame.request.Request;
 import zhaos.spaceagegame.request.RequestConstants;
-import zhaos.spaceagegame.ui.SpaceGameActivity;
+import zhaos.spaceagegame.spaceGame.entity.EntityHandler;
+import zhaos.spaceagegame.spaceGame.entity.SpaceStation;
+import zhaos.spaceagegame.spaceGame.map.HexTile;
+import zhaos.spaceagegame.spaceGame.map.MapHandler;
+import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
 import zhaos.spaceagegame.util.HHexDirection;
 
 /**
@@ -32,37 +26,30 @@ import zhaos.spaceagegame.util.HHexDirection;
  */
 public class LocalGame extends AsyncTask<Void,Void,Void> {
     private static final String TAG = "Local Space Game";
+
     //Singleton
     private static LocalGame instance;
-    private boolean running;
-    private SynchronousQueue<Request> actionQueue;
-    private Unit[] selected = new Unit[3];
 
     public static LocalGame getInstance() {
         if (instance == null) instance = new LocalGame();
         return instance;
     }
 
-    public static EntityHandler getEntityHandler() {
-        if (instance == null) instance = new LocalGame();
-        return instance.entityHandler;
-    }
-
+    //Ongoing task stuff
+    private SynchronousQueue<Request> actionQueue;
+    private boolean running;
     private Handler mainThread;
 
+    //Facade
     private EntityHandler entityHandler;
     private MapHandler mapHandler;
 
-
     private TeamController[] teams;
+    private int activeTeam;
 
+    //init variables
     private int radius;
     private int teamCount;
-
-    private Unit activeUnit;
-
-    protected SpaceGameActivity view;
-
 
     /*Game Phases
     -1: Initializing, no actions for anyone
@@ -119,6 +106,7 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
     protected Void doInBackground(Void... params) {
         //testing init
         initializeFactionStart(1, new Point(2, 1));
+        initializeFactionStart(2, new Point(1, 2));
         //end testing
 
         running = true;
@@ -132,201 +120,56 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
                 continue;
             }
             action.getThisRequest();
+            MyBundle infoBundle = new MyBundle();
+            infoBundle.putInt(RequestConstants.INSTRUCTION,action.getInstructioin());
+            boolean success = false;
             switch (action.getInstructioin()
-                    ) {
-//                &    RequestConstants.ACTION_MASK) {
-//                case RequestConstants.GAME_ACTION:
-//                    handleAction(action);
-//                case RequestConstants.MAP_ACTION:
-//                    mapHandler.handleAction(action);
-//                    break;
-//                case RequestConstants.ENTITY_ACTION:
-//                    entityHandler.handleAction(action);
-//                    break;
-//                Deprecating code for now.  Refactoring for the facade design pattern
-                case RequestConstants.GAME_INFO:
-                    getGameInfo(action);
+                &    RequestConstants.ACTION_MASK) {
+                case RequestConstants.GAME_ACTION:
+                    success = localGameAction(action, infoBundle);
                     break;
-                case RequestConstants.HEX_INFO:
-                    getHexInfo(action);
+                case RequestConstants.MAP_ACTION:
+                    success = mapHandlerAction(action,infoBundle);
                     break;
-                case RequestConstants.SUBSECTION_INFO:
-                    getSubsectionInfo(action);
+                case RequestConstants.ENTITY_ACTION:
+                    success = entityHandlerAction(action, infoBundle);
                     break;
-                case RequestConstants.UNIT_INFO:
-                    getUnitInfo(action);
-                    break;
-                case RequestConstants.UNIT_MOVE:
-                    moveUnit(action);
-                    break;
-                case RequestConstants.UNIT_SELECT:
-                    unitSelect(action);
-                    break;
-                case RequestConstants.UNIT_ATTACK:
-                    unitAttack(action);
-                    break;
-
-                default:
-                    //do nothing
-
             }
-            resetPhase();
+            actionCompleted(action.getCallback(),infoBundle,success);
         }
 
         return null;
     }
 
-    //move this into the Entity Handler
-    //Or move most of the code calling
-    private void getUnitInfo(Request action) {
-        if (action.getInstructioin() != RequestConstants.UNIT_INFO) {
-            actionCompleted(action.getCallback(), null, false);
-            return;
+    private boolean localGameAction(Request action, MyBundle bundle){
+        switch (action.getInstructioin()){
+            case RequestConstants.GAME_INFO:
+                return getGameInfo(action,bundle);
+            case RequestConstants.GAME_END:
+                return stopGame(action,bundle);
+            case RequestConstants.END_TURN:
+                return endTurn(action,bundle);
         }
-        MyBundle infoBundle = new MyBundle();
-        UnitInfoRequest infoRequest = (UnitInfoRequest) action;
-        Unit unit = entityHandler.getUnit(infoRequest.getUnitID());
-
-        if (unit == null) {
-            actionCompleted(action.getCallback(), null, false);
-            return;
-        }
-        unit.getInfo(infoBundle);
-        actionCompleted(action.getCallback(), infoBundle, true);
+        return false;
     }
 
-    private void getSubsectionInfo(Request action) {
-        if (action.getInstructioin() != RequestConstants.SUBSECTION_INFO) {
-            actionCompleted(action.getCallback(), null, false);
-            return;
-        }
-        SubsectionInfoBase infoRequest = (SubsectionInfoBase) action;
-        MyBundle subsectionInfo = new MyBundle();
-        HexTile tile = mapHandler.getHex(infoRequest.getHex());
-        if (tile == null) {
-            actionCompleted(action.getCallback(), subsectionInfo, false);
-            return;
-        }
-        tile.getSubsectionInfo(infoRequest, subsectionInfo);
-
-        actionCompleted(action.getCallback(),
-                subsectionInfo,
-                true);
+    private boolean endTurn(Request action, MyBundle bundle) {
+        resetPhase();
+        return getGameInfo(action,bundle);
     }
 
-    private void getHexInfo(Request action) {
-        if (action.getInstructioin() != RequestConstants.HEX_INFO) {
-            actionCompleted(action.getCallback(), null, false);
-            return;
-        }
-        HexInfoRequest infoRequest = (HexInfoRequest) action;
-        MyBundle hexInfo = new MyBundle();
-        HexTile tile = mapHandler.getHex(infoRequest.getHex());
-        if (tile == null) {
-            actionCompleted(action.getCallback(), hexInfo, false);
-            return;
-        }
-        tile.getInfo(hexInfo);
-
-        actionCompleted(action.getCallback(),
-                hexInfo,
-                true);
-
+    private boolean entityHandlerAction(Request action, MyBundle bundle) {
+        return entityHandler.handleRequest(action,bundle);
     }
 
-    private void unitAttack(Request action) {
-        MyBundle bundle = action.getThisRequest();
-        Request.RequestCallback callback = action.getCallback();
-
-        Point hexPos = bundle.getPoint(RequestConstants.DESTINATION_HEX);
-        HHexDirection subsectionDir = bundle
-                .getSubsection(RequestConstants.DESTINATION_SUBSECTION);
-        HexTile hex = getHex(hexPos);
-        Subsection subsection = hex.getSubsection(subsectionDir);
-
-        Unit unit = getUnit(bundle.getInt(RequestConstants.UNIT_ID));
-        selected[2] = unit;
-        subsection.attack(selected);
-
-
-        actionCompleted(callback, bundle, true);
-
+    private boolean mapHandlerAction(Request action, MyBundle bundle) {
+        return mapHandler.handleRequest(action,bundle);
     }
 
-    private void unitSelect(Request action) {
-        MyBundle bundle = action.getThisRequest();
-        Request.RequestCallback callback = action.getCallback();
-
-        Unit currentUnit = getUnit(bundle.getInt(RequestConstants.UNIT_ID));
-        if (currentUnit == null) {
-            actionCompleted(callback, bundle, false);
-            return;
-        }
-        if (selected[0] != null) {
-            if (!selected[0].getSubsection().equals(currentUnit.getSubsection())) {
-                for (int i = 0; i < 2; i++)
-                    selected[i] = null;
-            }
-        }
-        for (int i = 0; i < 3; i++) {
-            if (selected[i] == null) {
-                selected[i] = currentUnit;
-                break;
-            }
-        }
-        actionCompleted(callback, bundle, true);
-    }
-
-    private void moveUnit(Request action) {
-        MyBundle bundle = action.getThisRequest();
-        Request.RequestCallback callback = action.getCallback();
-
-//        int faction = bundle.getInt(RequestConstants.FACTION_ID);
-        int unitID = bundle.getInt(RequestConstants.UNIT_ID);
-        Unit unit = getUnit(unitID);
-//        if (unit.getTeam() != faction) return;
-
-        selectUnit(unit);
-        Subsection[] valid = moves();
-        Point destinationHex = bundle.getPoint(RequestConstants.DESTINATION_HEX);
-        HHexDirection destinationSubsection
-                = bundle.getSubsection(RequestConstants.DESTINATION_SUBSECTION);
-
-//        Point originHex = bundle.getPoint(RequestConstants.ORIGIN_HEX);
-//        HHexDirection originSubsection = bundle.getSubsection(RequestConstants.ORIGIN_SUBSECTION);
-//
-//        if (unit.getHexTile().getPosition() != originHex) {
-//            actionCompleted(callback, bundle, false);
-//            return;
-//        }
-//        if (unit.getSubsection().getPosition() != originSubsection) {
-//            actionCompleted(callback, bundle, false);
-//            return;
-//        }
-
-        for (Subsection section : valid) {
-            if (section == null) continue;
-            Log.i(TAG, "moveUnit: " + section.getParentPosition() + " " + destinationHex);
-            if (section.getParentPosition().equals(destinationHex)) {
-                Log.i(TAG, "moveUnit: " + section.getPosition() + " " + destinationSubsection);
-                if (section.getPosition().i() == destinationSubsection.i()) {
-                    //            if (section.getTeam() == faction || section.getTeam() == 0)
-                    section.moveIn(unit);
-                    break;
-                    //          }
-                }
-            }
-        }
-        actionCompleted(callback, bundle, true);
-    }
-
-
-    private void getGameInfo(Request action) {
-
-    }
-
-    private Unit getUnit(int unitID) {
-        return entityHandler.getUnit(unitID);
+    private boolean getGameInfo(Request action,MyBundle bundle) {
+        //TODO make sure all "meta" data is represented
+        bundle.putInt(RequestConstants.ACTIVE_FACTION,activeTeam);
+        return true;
     }
 
     //returns the radius of the game
@@ -375,48 +218,28 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         return mapHandler.getMap();
     }
 
-    private void selectUnit(Unit e) {
-        activeUnit = e;
-    }
-
-    private Subsection[] moves() {
-        ArrayList<Subsection> a = new ArrayList<Subsection>();
-        int team = activeUnit.getTeam();
-        int tile;
-        for (Subsection s : activeUnit.getSubsection().getNeighbors()) {
-            if (s == null) continue;
-            tile = s.getAffiliation();
-            if (tile == team || tile == -1) {
-                a.add(s);
-                Log.i(TAG, "moves: " + team + " " + tile);
-            }
-        }
-        return a.toArray(new Subsection[6]);
-    }
-
-    private SpaceStation registerSpaceStation(int faction, SubsectionCenter subsection) {
-
-        return entityHandler.newSpaceStation(faction, subsection);
-    }
-
     //methods for Team Controller to give actions
     public void sendRequest(final Request gameAction) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                //Not sure if this necessarily is thread safe or not
                 actionQueue.offer(gameAction);
             }
         }).run();
     }
 
-    public void stopGame() {
+    public boolean stopGame(Request action, MyBundle bundle) {
         running = false;
+        return true;
     }
 
-    public void actionCompleted(final Request.RequestCallback callback,
+    public void actionCompleted(@NonNull final Request.RequestCallback callback,
                                 final MyBundle info, boolean success) {
         info.putBoolean(RequestConstants.SUCCESS, success);
+        Log.i(TAG, "actionCompleted: Instruction: "
+                + Integer.toHexString(info.getInt(RequestConstants.INSTRUCTION))
+                +"\tSucess:"
+                + success);
         mainThread.post(new Runnable() {
             @Override
             public void run() {
@@ -427,21 +250,8 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
 
     //Phases
     private void resetPhase() {
-        for (HexTile h : getTiles()) {
-            for (Subsection s : h.getSubsections()) {
-                s.resetInfo();
-            }
-        }
-        calculateAreaOfInfluence();
-    }
-
-    //Auxiliary methods for internal use
-    private void calculateAreaOfInfluence() {
-        for (TeamController t : teams) {
-            for (Unit u : t.getUnits()) {
-                u.getSubsection().updateInfluence(6, u.getTeam());
-            }
-        }
+        mapHandler.reset();
+        entityHandler.reset();
     }
 
     //Initialize HHexDirection enum translation methods
@@ -503,7 +313,7 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         HexTile start = getHex(startingHex);
         if (start == null) return;
         start.placeCity(
-                registerSpaceStation(
+                entityHandler.newSpaceStation(
                         faction,
                         (SubsectionCenter)start.getSubsection(HHexDirection.CENTER)));
         SpaceStation city =

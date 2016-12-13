@@ -2,6 +2,7 @@ package zhaos.spaceagegame.spaceGame.map;
 
 import android.graphics.Point;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +29,7 @@ public class Subsection {
     protected Collection<ConstructionPod> pods;
     protected int affiliation;
     private int[] influenceLevels;
+    protected Subsection[] neighbors = null;
 
     Subsection(HexTile parent, HHexDirection spot){
         occupants = new ArrayList<>();
@@ -101,19 +103,22 @@ public class Subsection {
 
     //returns neighboring subsections
     public Subsection[] getNeighbors(){
-        //Four neighbors for a subsection in the outer ring of a Hex
-        Subsection[] a = new Subsection[4];
-        //Center subsection of same hexTile
-        a[0]=parent.getSubsection(HHexDirection.CENTER);
-        //Adjacent in the clockwise direction
-        a[1]=parent.getSubsection(position.clockwise());
-        //Adjacent on the other side in the counterclockwise direction
-        a[2]=parent.getSubsection(position.counterClockwise());
-        //subsection in neighboring Hex
-        HexTile neighbor = parent.getNeighbor(position);
-        if(neighbor!=null)
-            a[3]=neighbor.getSubsection(HHexDirection.flip(position));
-        return a;
+        if(neighbors == null) {
+            //Four neighbors for a subsection in the outer ring of a Hex
+            Subsection[] a = new Subsection[4];
+            //Center subsection of same hexTile
+            a[0] = parent.getSubsection(HHexDirection.CENTER);
+            //Adjacent in the clockwise direction
+            a[1] = parent.getSubsection(position.clockwise());
+            //Adjacent on the other side in the counterclockwise direction
+            a[2] = parent.getSubsection(position.counterClockwise());
+            //subsection in neighboring Hex
+            HexTile neighbor = parent.getNeighbor(position);
+            if (neighbor != null)
+                a[3] = neighbor.getSubsection(HHexDirection.flip(position));
+            neighbors = a;
+        }
+        return neighbors;
     }
 
     public HHexDirection getPosition() {
@@ -164,11 +169,10 @@ public class Subsection {
             unitList.add(unitInfo);
         }
         bundle.putArrayList(RequestConstants.UNIT_LIST,unitList);
-        getSubsectionShallowInfo(bundle);
+        getSubsectionOverview(bundle);
     }
 
-    void getSubsectionShallowInfo(@NonNull MyBundle bundle) {
-
+    void getSubsectionOverview(@NonNull MyBundle bundle) {
         bundle.putSubsection(RequestConstants.ORIGIN_SUBSECTION,
                 position);
         bundle.putInt(RequestConstants.FACTION_ID,
@@ -189,5 +193,26 @@ public class Subsection {
                 return true;
         }
         return false;
+    }
+
+    public boolean equals(Point hex, HHexDirection subsection) {
+        return hex.equals( getParentPosition()) && subsection.equals(getPosition());
+    }
+
+    public Subsection[] getMoves() {
+        Subsection[] move = new Subsection[getNeighbors().length];
+        int team = getAffiliation();
+        int i=0;
+        int tile;
+        for (Subsection s : getNeighbors()) {
+            if (s == null) continue;
+            tile = s.getAffiliation();
+            if (tile == team || tile == -1) {
+                move[i] = s;
+                i++;
+            }
+        }
+        Log.i(TAG, "getMoves: Valid Moves: " + i);
+        return move;
     }
 }

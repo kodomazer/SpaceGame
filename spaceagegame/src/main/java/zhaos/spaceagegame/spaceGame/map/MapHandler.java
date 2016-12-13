@@ -7,6 +7,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.helperRequest.HexInfoRequest;
+import zhaos.spaceagegame.request.helperRequest.SubsectionInfoBase;
 import zhaos.spaceagegame.util.HHexDirection;
 import zhaos.spaceagegame.request.Request;
 import zhaos.spaceagegame.request.RequestConstants;
@@ -79,45 +82,57 @@ public final class MapHandler {
                     }
                     else if (last != null) {
                         last.linkMapRecursion(cur,k<1?facing.counterClockwise():facing);
-
                     }
                     facing.translatePoint(current);
                 }
             }
-            cur.linkMapRecursion(first,facing);
+            if(cur!=null)
+                cur.linkMapRecursion(first,facing);
             cur = first;
         }
     }
 
-    public void handleAction(Request action) {
-        switch (action.getThisRequest().getInt(RequestConstants.INSTRUCTION)
-                & RequestConstants.HANDLER_MASK){
-            case RequestConstants.HEX_HANDLER:
-                delegateToHex(action);
-                break;
-            case RequestConstants.SUB_HANDLER:
-                delegateToSubsection(action);
-                break;
-            default:
-                switch (action.getThisRequest().getInt(RequestConstants.INSTRUCTION)){
-                    default:
-                        //nothing so far
-                }
-        }
-
-    }
-
-    private void delegateToSubsection(Request action) {
-        //TODO: Need to find the proper Subsection and then pass on the action
-        //Possibly just pass it to to the hex and the hex will pass it to the subsection...
-    }
-
-    private void delegateToHex(Request action) {
-        //TODO: Need to find the proper hex and then pass on the action
-        HexTile hex = getHex(action.getThisRequest().getPoint(RequestConstants.HEX));
-        if(hex!=null){
-            hex.handleAction(action);
+    public void reset() {
+        for (HexTile h : getMap()) {
+            for (Subsection s : h.getSubsections()) {
+                s.resetInfo();
+            }
         }
     }
 
+    public boolean handleRequest(Request action, MyBundle bundle) {
+        switch (action.getThisRequest().getInt(RequestConstants.INSTRUCTION)){
+            case RequestConstants.HEX_INFO:
+                return hexInfo(action,bundle);
+            case RequestConstants.SUBSECTION_INFO:
+                return subsectionInfo(action,bundle);
+        }
+        return false;
+    }
+
+    private boolean subsectionInfo(Request action, MyBundle infoBundle) {
+        if (action.getInstructioin() != RequestConstants.SUBSECTION_INFO) {
+            return false;
+        }
+        SubsectionInfoBase infoRequest = (SubsectionInfoBase) action;
+        HexTile tile = getHex(infoRequest.getHex());
+        if (tile == null) {
+            return false;
+        }
+        tile.getSubsectionInfo(infoRequest, infoBundle);
+        return true;
+    }
+
+    private boolean hexInfo(Request action, MyBundle infoBundle) {
+        if (action.getInstructioin() != RequestConstants.HEX_INFO) {
+            return false;
+        }
+        HexInfoRequest infoRequest = (HexInfoRequest) action;
+        HexTile tile = getHex(infoRequest.getHex());
+        if (tile == null) {
+            return false;
+        }
+        tile.getInfo(infoBundle);
+        return true;
+    }
 }

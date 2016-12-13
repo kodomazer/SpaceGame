@@ -133,12 +133,12 @@ public class HexTile {
         return subsections;
     }
 
-    public void placeCity(SpaceStation station) {
-        ((SubsectionCenter)subsections[6]).placeCity(station);
+    public SubsectionCenter getCenter(){
+        return (SubsectionCenter) subsections[6];
     }
 
-    void handleAction(Request action) {
-
+    public void placeCity(SpaceStation station) {
+        getCenter().placeCity(station);
     }
 
     public void getInfo(MyBundle bundle){
@@ -148,7 +148,7 @@ public class HexTile {
             MyBundle subInfo = new MyBundle();
             subInfo.putPoint(RequestConstants.ORIGIN_HEX,
                     position);
-            subsection.getSubsectionShallowInfo(subInfo);
+            subsection.getSubsectionOverview(subInfo);
             subsectionList.add(subInfo);
         }
         bundle.putArrayList(RequestConstants.SUBSECTION_LIST, subsectionList);

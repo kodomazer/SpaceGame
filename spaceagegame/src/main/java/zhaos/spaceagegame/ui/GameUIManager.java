@@ -255,24 +255,17 @@ class GameUIManager implements Runnable {
         boolean top = true;
         boolean left = true;
         boolean topSide;
-        if(relativePosition.y>CENTER.y){
+        if(relativePosition.y>CENTER.y) {
             top = false;
-            relativePosition.y-=CENTER.y;
-            Log.i(TAG, "findClickedSubsection: Bottom");
-        }
-        else{
-
-            Log.i(TAG, "findClickedSubsection: Top");
+            relativePosition.y -= CENTER.y;
         }
         //Left or Right
         if(relativePosition.x>CENTER.x){
             left = false;
             relativePosition.x-=CENTER.x;
-            Log.i(TAG, "findClickedSubsection: Right");
         }
         else{
             relativePosition.x-=relativeAngleWidth;
-            Log.i(TAG, "findClickedSubsection: Left");
         }
         if(left^top){
             topSide = relativePosition.y<
@@ -308,7 +301,6 @@ class GameUIManager implements Runnable {
             default:
                 direction = HHexDirection.CENTER;
         }
-        Log.i(TAG, "findClickedSubsection: "+ direction.toString());
         return direction;
     }
 
@@ -376,7 +368,7 @@ class GameUIManager implements Runnable {
         }
     }
 
-    private void subsectionClicked(Point hex, HHexDirection subsection) {
+    void subsectionClicked(Point hex, HHexDirection subsection) {
         SubsectionInfoBase request = new SubsectionInfoRequest(new Request.RequestCallback() {
             @Override
             public void onComplete(MyBundle info) {
@@ -390,6 +382,7 @@ class GameUIManager implements Runnable {
 
     void subsectionInfoCallback(MyBundle info) {
         if(info==null)return;
+        if(!info.getBoolean(RequestConstants.SUCCESS))return;
         subsectionInfo.setInfo(info);
         infoFrame.removeAllViews();
         infoFrame.addView(subsectionInfo);

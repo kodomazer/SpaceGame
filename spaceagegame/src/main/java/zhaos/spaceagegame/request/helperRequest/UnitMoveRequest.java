@@ -1,11 +1,6 @@
 package zhaos.spaceagegame.request.helperRequest;
 
-import android.graphics.Point;
-
-import zhaos.spaceagegame.request.MyBundle;
-import zhaos.spaceagegame.request.Request;
 import zhaos.spaceagegame.request.RequestConstants;
-import zhaos.spaceagegame.util.HHexDirection;
 
 /**
  * Created by russel on 12/10/2016.
@@ -21,6 +16,13 @@ public class UnitMoveRequest extends SubsectionInfoBase{
 
     public void setId(int id){
         this.id = id;
+    }
+
+    public int getId(){
+        if(thisRequest!=null){
+            return thisRequest.getInt(RequestConstants.UNIT_ID);
+        }
+        return id;
     }
 
     @Override

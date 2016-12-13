@@ -21,8 +21,8 @@ public class ConstructionPod extends Entity{
     }
 
     @Override
-    public void resetPhase() {
-
+    public boolean resetPhase() {
+        return false;
     }
 
     @Override

@@ -24,15 +24,18 @@ public class SubsectionCenter extends Subsection {
 
     @Override
     public Subsection[] getNeighbors() {
-        //6 subsections adjacent to the center of the hexTile, all of the outer subsections
-        Subsection[] a = new Subsection[6];
-        HHexDirection current = HHexDirection.Up;
-        do{
-            a[current.i()] = parent.getSubsection(current); //get neighbor
-            current = current.clockwise(); //move direction clockwise
-        }while(current!=HHexDirection.Up);
-
-        return a;
+        //lazy initialize
+        if(neighbors == null) {
+            //6 subsections adjacent to the center of the hexTile, all of the outer subsections
+            Subsection[] a = new Subsection[6];
+            HHexDirection current = HHexDirection.Up;
+            do{
+                a[current.i()] = parent.getSubsection(current); //get neighbor
+                current = current.clockwise(); //move direction clockwise
+            }while(current!=HHexDirection.Up);
+            neighbors = a;
+        }
+        return neighbors;
     }
 
     public SpaceStation getCity() {

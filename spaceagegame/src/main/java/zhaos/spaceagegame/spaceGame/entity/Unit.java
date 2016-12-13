@@ -34,8 +34,9 @@ public class Unit extends Entity{
     }
 
     @Override
-    public void resetPhase() {
+    public boolean resetPhase() {
         actionPoints = 3;
+        return false;
     }
 
     @Override

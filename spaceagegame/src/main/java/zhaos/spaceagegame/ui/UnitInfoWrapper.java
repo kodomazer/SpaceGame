@@ -51,7 +51,7 @@ class UnitInfoWrapper extends LinearLayout {
                     @Override
                     public void onComplete(MyBundle info) {
                         //Update Subsection after move
-                        parent.subsectionInfoCallback(info);
+                        parent.subsectionClicked(hex,subsection);
                     }
                 });
                 request.setId(unitID);
