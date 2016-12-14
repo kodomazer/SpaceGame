@@ -27,7 +27,7 @@ public class Request {
         void onComplete(MyBundle info);
     }
 
-    public int getInstructioin(){
+    public int getInstruction(){
         return thisRequest.getInt(RequestConstants.INSTRUCTION);
     }
 

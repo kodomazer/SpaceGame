@@ -73,7 +73,7 @@ public class SubsectionCenter extends Subsection {
             SpaceStation city = getCity();
             //
             if(city!=null){
-                city.getSpaceStationInfo(cityInfo);
+                city.getInfo(cityInfo);
                 bundle.putBundle(RequestConstants.SPACE_STATION_INFO,cityInfo);
             }
     }

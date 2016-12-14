@@ -1,5 +1,7 @@
 package zhaos.spaceagegame.spaceGame.entity;
 
+import android.support.annotation.NonNull;
+
 import zhaos.spaceagegame.request.MyBundle;
 import zhaos.spaceagegame.request.Request;
 import zhaos.spaceagegame.request.RequestConstants;
@@ -19,16 +21,30 @@ public class SpaceStation extends Entity{
                  SubsectionCenter subsection){
         super(ID,faction,subsection);
         parent = entityHandler;
+        energy = 3;
+        setActionPoints(2);
     }
 
-    public void getSpaceStationInfo(MyBundle bundle){
+    @Override
+    public void getInfo(MyBundle bundle){
+        super.getInfo(bundle);
         bundle.putInt(RequestConstants.SPACE_STATION_ID, getID());
-        bundle.putInt(RequestConstants.LEVEL,getLevel());
+
+        int status = 0;
+        if(energy>1&&remainingActions()>0)
+            status |= RequestConstants.CAN_PRODUCE_UNIT;
+        bundle.putInt(RequestConstants.CITY_STATUS_FLAGS,status);
+
     }
 
-    boolean createUnit(){
-        //TODO: Check for supplies
-        Unit unit = getParent().newUnit(this);
+    boolean createUnit(Request action, MyBundle bundle){
+        if(energy<2)
+            return false;
+        if(remainingActions()<1)
+            return false;
+        getParent().newUnit(this);
+        energy-=2;
+        useAction();
         return true;
     }
 
@@ -45,6 +61,12 @@ public class SpaceStation extends Entity{
     @Override
     public SubsectionCenter getSubsection(){
         return (SubsectionCenter) super.getSubsection();
+    }
+
+    @Override
+    public void getDice(@NonNull int[] dice) {
+        dice[0] = 1*getLevel();
+        dice[1] = 12;
     }
 
     @Override

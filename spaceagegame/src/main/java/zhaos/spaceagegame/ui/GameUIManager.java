@@ -1,14 +1,10 @@
 package zhaos.spaceagegame.ui;
 
-import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -22,14 +18,12 @@ import zhaos.spaceagegame.R;
 import zhaos.spaceagegame.request.helperRequest.HexInfoRequest;
 import zhaos.spaceagegame.request.helperRequest.SubsectionInfoBase;
 import zhaos.spaceagegame.request.helperRequest.SubsectionInfoRequest;
-import zhaos.spaceagegame.request.helperRequest.UnitAttackRequest;
-import zhaos.spaceagegame.request.helperRequest.UnitInfoRequest;
-import zhaos.spaceagegame.request.helperRequest.UnitMoveRequest;
 import zhaos.spaceagegame.spaceGame.LocalGame;
 import zhaos.spaceagegame.spaceGame.map.HexTile;
 import zhaos.spaceagegame.request.MyBundle;
 import zhaos.spaceagegame.request.Request;
 import zhaos.spaceagegame.request.RequestConstants;
+import zhaos.spaceagegame.ui.textInfoView.SubsectionInfoWrapper;
 import zhaos.spaceagegame.util.FloatPoint;
 import zhaos.spaceagegame.util.HHexDirection;
 
@@ -38,7 +32,7 @@ import zhaos.spaceagegame.util.HHexDirection;
  *
  *
  */
-class GameUIManager implements Runnable {
+public class GameUIManager implements Runnable {
     private String TAG = "UI Manager";
 
     Handler mainHandler;
@@ -58,16 +52,16 @@ class GameUIManager implements Runnable {
     private int xPosition;
     private int yPosition;
 
-    LocalGame game;
+    public LocalGame game;
     private Map<Point,HexGUI> GUIGrid;
 
     private RelativeLayout mainView;
     private TextView infoText[];
-    FrameLayout infoFrame;
+    public FrameLayout infoFrame;
     private SubsectionInfoWrapper subsectionInfo;
     private LinearLayout hexInfo;
 
-    SubsectionInfoBase selectingSubsection;
+    public SubsectionInfoBase selectingSubsection;
 
 
 
@@ -244,7 +238,7 @@ class GameUIManager implements Runnable {
 
     private HHexDirection findClickedSubsection
             (int xPosition, int yPosition, Point clickPoint) {
-        HHexDirection direction = null;
+        HHexDirection direction;
         final Point CENTER = new Point(
                 (int)(relativeAngleWidth+relativeCenterWidth/2),
                 (int)relativeHalfHeight);
@@ -368,7 +362,7 @@ class GameUIManager implements Runnable {
         }
     }
 
-    void subsectionClicked(Point hex, HHexDirection subsection) {
+    public void subsectionClicked(Point hex, HHexDirection subsection) {
         SubsectionInfoBase request = new SubsectionInfoRequest(new Request.RequestCallback() {
             @Override
             public void onComplete(MyBundle info) {
@@ -380,7 +374,7 @@ class GameUIManager implements Runnable {
         game.sendRequest(request);
     }
 
-    void subsectionInfoCallback(MyBundle info) {
+    public void subsectionInfoCallback(MyBundle info) {
         if(info==null)return;
         if(!info.getBoolean(RequestConstants.SUCCESS))return;
         subsectionInfo.setInfo(info);

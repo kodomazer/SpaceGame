@@ -82,7 +82,7 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
         move,
         combat1,
         combat2,
-        combat3;
+        combat3
     }
 
 
@@ -121,9 +121,9 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
             }
             action.getThisRequest();
             MyBundle infoBundle = new MyBundle();
-            infoBundle.putInt(RequestConstants.INSTRUCTION,action.getInstructioin());
+            infoBundle.putInt(RequestConstants.INSTRUCTION,action.getInstruction());
             boolean success = false;
-            switch (action.getInstructioin()
+            switch (action.getInstruction()
                 &    RequestConstants.ACTION_MASK) {
                 case RequestConstants.GAME_ACTION:
                     success = localGameAction(action, infoBundle);
@@ -142,7 +142,7 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
     }
 
     private boolean localGameAction(Request action, MyBundle bundle){
-        switch (action.getInstructioin()){
+        switch (action.getInstruction()){
             case RequestConstants.GAME_INFO:
                 return getGameInfo(action,bundle);
             case RequestConstants.GAME_END:
@@ -321,6 +321,5 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
                         .getCity();
         entityHandler.newUnit(city);
         entityHandler.newUnit(city);
-
     }
 }

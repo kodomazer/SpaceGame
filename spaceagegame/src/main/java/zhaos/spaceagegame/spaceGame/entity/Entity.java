@@ -1,5 +1,7 @@
 package zhaos.spaceagegame.spaceGame.entity;
 
+import android.support.annotation.NonNull;
+
 import zhaos.spaceagegame.request.MyBundle;
 import zhaos.spaceagegame.request.RequestConstants;
 import zhaos.spaceagegame.spaceGame.map.Subsection;
@@ -49,6 +51,8 @@ public abstract class Entity {
         return teamID;
     }
 
+    public abstract void getDice(@NonNull int[] dice);
+
     public int getID(){
         return ID;
     }
@@ -61,7 +65,7 @@ public abstract class Entity {
         level++;
     }
 
-    protected void damage(){
+    public void damage(){
         damage(1);
     }
 
@@ -91,8 +95,10 @@ public abstract class Entity {
 
 
     public void getInfo(MyBundle bundle){
+        //location
         bundle.putPoint(RequestConstants.ORIGIN_HEX, getSubsection().getParentPosition());
         bundle.putSubsection(RequestConstants.SUBSECTION,getSubsection().getPosition());
+        //Basic Info
         bundle.putInt(RequestConstants.LEVEL, getLevel());
         bundle.putInt(RequestConstants.FACTION_ID, getTeam());
         bundle.putInt(RequestConstants.UNIT_ID, getID());

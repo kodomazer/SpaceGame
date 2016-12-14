@@ -1,4 +1,4 @@
-package zhaos.spaceagegame.ui;
+package zhaos.spaceagegame.ui.textInfoView;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -14,6 +14,7 @@ import zhaos.spaceagegame.request.helperRequest.SubsectionInfoBase;
 import zhaos.spaceagegame.request.helperRequest.SubsectionInfoRequest;
 import zhaos.spaceagegame.request.helperRequest.UnitAttackRequest;
 import zhaos.spaceagegame.request.helperRequest.UnitMoveRequest;
+import zhaos.spaceagegame.ui.GameUIManager;
 import zhaos.spaceagegame.util.HHexDirection;
 
 /**
@@ -101,7 +102,7 @@ class UnitInfoWrapper extends LinearLayout {
         }
         if((status & RequestConstants.CAN_ATTACK) != 0){
             attack.setVisibility(VISIBLE);
-            select.setVisibility(VISIBLE);
+            //select.setVisibility(VISIBLE);
             select.setText("Select");
         }
         else{

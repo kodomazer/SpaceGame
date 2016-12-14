@@ -9,6 +9,8 @@ import java.util.Map;
 import zhaos.spaceagegame.request.MyBundle;
 import zhaos.spaceagegame.request.Request;
 import zhaos.spaceagegame.request.RequestConstants;
+import zhaos.spaceagegame.request.helperRequest.EntityProductionRequest;
+import zhaos.spaceagegame.request.helperRequest.SpaceStationInfoRequest;
 import zhaos.spaceagegame.request.helperRequest.UnitAttackRequest;
 import zhaos.spaceagegame.request.helperRequest.UnitInfoRequest;
 import zhaos.spaceagegame.request.helperRequest.UnitMoveRequest;
@@ -71,12 +73,14 @@ public class EntityHandler {
         Unit unit = new Unit(station, lastUnitID);
         units.put(lastUnitID, unit);
         lastUnitID++;
-        station.getSubsection().addUnit(unit);
         return unit;
     }
 
     public SpaceStation newSpaceStation(int faction, SubsectionCenter subsection) {
-        SpaceStation spaceStation = new SpaceStation(lastSpaceStationID, faction, this, subsection);
+        SpaceStation spaceStation = new SpaceStation(lastSpaceStationID,
+                faction,
+                this,
+                subsection);
         spaceStations.put(lastSpaceStationID, spaceStation);
         lastSpaceStationID++;
         return spaceStation;
@@ -99,7 +103,7 @@ public class EntityHandler {
     //Request handling
     public boolean handleRequest(Request action, MyBundle bundle) {
         Log.i(TAG, "handleRequest: Entity Handler");
-        switch (action.getInstructioin()) {
+        switch (action.getInstruction()) {
             case RequestConstants.UNIT_ATTACK:
                 return unitAttack(action, bundle);
             case RequestConstants.UNIT_INFO:
@@ -116,13 +120,20 @@ public class EntityHandler {
         return false;
     }
 
+    //unused,
     private boolean producePod(Request action, MyBundle bundle) {
 
         return false;
     }
 
     private boolean produceUnit(Request action, MyBundle bundle) {
-        return false;
+        EntityProductionRequest request = (EntityProductionRequest) action;
+        SpaceStation city =  getCity(request.getID());
+        if(city==null){
+            Log.i(TAG, "produceUnit: NOT A CITY YOU Doofus");
+            return false;}
+        //if city isn't null, produce the unit
+        return city.createUnit(action,bundle);
     }
 
 
@@ -144,7 +155,7 @@ public class EntityHandler {
     }
 
     private boolean entityInfo(Request action, MyBundle bundle) {
-        switch (action.getInstructioin()){
+        switch (action.getInstruction()){
             case RequestConstants.UNIT_INFO:
                 UnitInfoRequest infoRequest = (UnitInfoRequest) action;
                 Unit unit = getUnit(infoRequest.getUnitID());
@@ -154,9 +165,15 @@ public class EntityHandler {
                 unit.getInfo(bundle);
                 return true;
             case RequestConstants.CITY_INFO:
-
+                SpaceStationInfoRequest spaceStationInfoRequest =
+                        (SpaceStationInfoRequest) action;
+                SpaceStation spaceStation = getCity(spaceStationInfoRequest.getID());
+                if(spaceStation==null) {
+                    return false;
+                }
+                spaceStation.getInfo(bundle);
+                return true;
         }
-
         return true;
     }
 
@@ -167,21 +184,10 @@ public class EntityHandler {
 
         int unitID = request.getId();
         Unit unit = getUnit(unitID);
-        Subsection[] valid = unit.getSubsection().getMoves();
-
-        //get destination Info
-        Point destinationHex = request.getHex();
-        HHexDirection destinationSubsection
-                = request.getSubsection();
-
-        //If one of the subsections is the correct subsection
-        for (Subsection section : valid) {
-            if (section == null) continue;
-            if (section.equals(destinationHex, destinationSubsection)) {
-                Log.i(TAG, "unitMove: moved in");
-                return section.moveIn(unit);
-            }
-        }
-        return false;
+        if(unit==null){
+            Log.i(TAG, "unitMove: NOT A UNIT");
+            return false;}
+        //If not null return
+        return unit.moveToSubsection(request, bundle);
     }
 }

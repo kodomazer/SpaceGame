@@ -2,16 +2,16 @@ package zhaos.spaceagegame.spaceGame.map;
 
 import android.graphics.Point;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Random;
 
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.RequestConstants;
 import zhaos.spaceagegame.spaceGame.entity.ConstructionPod;
 import zhaos.spaceagegame.spaceGame.entity.Unit;
 import zhaos.spaceagegame.util.HHexDirection;
-import zhaos.spaceagegame.request.MyBundle;
-import zhaos.spaceagegame.request.RequestConstants;
 
 /**
  * Created by kodomazer on 9/26/2016.
@@ -52,10 +52,6 @@ public class Subsection {
                 if(origin==subsections)
                     neighbor = true;
             }
-        else {
-            //in case adding unit
-            neighbor = true;
-        }
 
         if(!neighbor)return false;
         if(affiliation==-1)
@@ -63,14 +59,12 @@ public class Subsection {
 
         if(e.getTeam()==affiliation){
             occupants.add(e);
-            if(origin!=null)
-                origin.moveOut(e);
+            origin.moveOut(e);
             ConstructionPod pod = e.constructionPod();
             if(pod!=null){
                 e.getSubsection().moveOut(pod);
                 pod.setPosition(this);
             }
-            e.setSubsection(this);
             return true;
         }
         return false;
@@ -97,6 +91,29 @@ public class Subsection {
     public boolean attack(Unit[] entities){
         //TODO Implement battle mechanics
         //TODO figure out how to pick defenders, automated? or choice
+        if(entities.length<1)return false;
+        Unit attacker = entities[0];
+        if(getUnits().length<1)return true;
+        Unit defender = getUnits()[0];
+        int[] attackDice = new int[2];
+        int[] defenseDice = new int[2];
+        attacker.getDice(attackDice);
+        defender.getDice(defenseDice);
+        int attackSum=0;
+        int defenseSum = 0;
+        for(int i = 0;i<attackDice[0];i++){
+            attackSum+= (int)(Math.random()*attackDice[1])+1;
+        }
+
+        for(int i = 0;i<defenseDice[0];i++){
+            defenseSum+= (int)(Math.random()*defenseDice[1])+1;
+        }
+        if(defenseSum>=attackSum)
+            attacker.damage();
+        if(attackSum>defenseSum)
+            defender.damage();
+
+
         return false;
     }
 
@@ -123,26 +140,6 @@ public class Subsection {
 
     public HHexDirection getPosition() {
         return position;
-    }
-
-    public void resetInfo(){
-        for(int i = 0;i<influenceLevels.length;i++){
-            influenceLevels[i]=0;
-        }
-        if(getAffiliation()==-1){
-            if(getUnits().length!=0){
-                affiliation = getUnits()[0].getTeam();
-            }
-        }
-    }
-
-    public void updateInfluence(int influence, int team){
-        if(influence<=influenceLevels[team])
-            return;
-        influenceLevels[team]=influence;
-        for (Subsection s: getNeighbors()) {
-            s.updateInfluence(influence-1,team);
-        }
     }
 
     public Point getParentPosition() {
@@ -195,10 +192,6 @@ public class Subsection {
         return false;
     }
 
-    public boolean equals(Point hex, HHexDirection subsection) {
-        return hex.equals( getParentPosition()) && subsection.equals(getPosition());
-    }
-
     public Subsection[] getMoves() {
         Subsection[] move = new Subsection[getNeighbors().length];
         int team = getAffiliation();
@@ -212,7 +205,30 @@ public class Subsection {
                 i++;
             }
         }
-        Log.i(TAG, "getMoves: Valid Moves: " + i);
         return move;
+    }
+
+    public boolean equals(Point hex, HHexDirection subsection) {
+        return hex.equals( getParentPosition()) && subsection.equals(getPosition());
+    }
+
+    public void resetInfo(){
+        for(int i = 0;i<influenceLevels.length;i++){
+            influenceLevels[i]=0;
+        }
+        if(getAffiliation()==-1){
+            if(getUnits().length!=0){
+                affiliation = getUnits()[0].getTeam();
+            }
+        }
+    }
+
+    public void updateInfluence(int influence, int team){
+        if(influence<=influenceLevels[team])
+            return;
+        influenceLevels[team]=influence;
+        for (Subsection s: getNeighbors()) {
+            s.updateInfluence(influence-1,team);
+        }
     }
 }

@@ -1,7 +1,5 @@
 package zhaos.spaceagegame.request;
 
-import zhaos.spaceagegame.util.GameAction;
-
 /**
  * Created by kodomazer on 10/22/2016.
  */
@@ -34,7 +32,10 @@ public class RequestConstants {
 
     //City Info
     public static final String UNIT_LIST = "units";
-    public static final String CITY_INFORMATION = "city info";
+    public static final String CITY_OVERVIEW = "city info";
+    public static final String CITY_STATUS_FLAGS = "City Status";
+    //Status Flags
+    public static final int CAN_PRODUCE_UNIT = 0b0001;
 
     //Unit Info
     public final static String UNIT_STATUS_FLAGS = "unit status";

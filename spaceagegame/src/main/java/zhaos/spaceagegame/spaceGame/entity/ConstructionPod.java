@@ -1,11 +1,14 @@
 package zhaos.spaceagegame.spaceGame.entity;
 
+import android.support.annotation.NonNull;
+
 import zhaos.spaceagegame.spaceGame.map.Subsection;
 import zhaos.spaceagegame.spaceGame.map.SubsectionCenter;
 import zhaos.spaceagegame.util.HHexDirection;
 
 /**
- * Created by kodomazer on 9/27/2016.
+ * Construction Pod
+ * Held off until later
  */
 public class ConstructionPod extends Entity{
     private String TAG = "Cons_Pod";
@@ -28,6 +31,12 @@ public class ConstructionPod extends Entity{
     @Override
     public int getTeam(){
         return -1;
+    }
+
+    @Override
+    public void getDice(@NonNull int[] dice) {
+        dice[0] = 0;
+        dice[1] = 0;
     }
 
     public void setPosition(Subsection subsection) {

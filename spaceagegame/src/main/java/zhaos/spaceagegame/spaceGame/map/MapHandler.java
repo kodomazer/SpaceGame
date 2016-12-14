@@ -24,7 +24,7 @@ public final class MapHandler {
 
     public MapHandler(){
         map = new HashMap<>();
-    };
+    }
 
 
     static Subsection makeSubsection(HHexDirection direction,
@@ -111,7 +111,7 @@ public final class MapHandler {
     }
 
     private boolean subsectionInfo(Request action, MyBundle infoBundle) {
-        if (action.getInstructioin() != RequestConstants.SUBSECTION_INFO) {
+        if (action.getInstruction() != RequestConstants.SUBSECTION_INFO) {
             return false;
         }
         SubsectionInfoBase infoRequest = (SubsectionInfoBase) action;
@@ -124,7 +124,7 @@ public final class MapHandler {
     }
 
     private boolean hexInfo(Request action, MyBundle infoBundle) {
-        if (action.getInstructioin() != RequestConstants.HEX_INFO) {
+        if (action.getInstruction() != RequestConstants.HEX_INFO) {
             return false;
         }
         HexInfoRequest infoRequest = (HexInfoRequest) action;

@@ -1,11 +1,9 @@
-package zhaos.spaceagegame.ui;
+package zhaos.spaceagegame.ui.textInfoView;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -14,17 +12,15 @@ import java.util.ArrayList;
 import zhaos.spaceagegame.request.MyBundle;
 import zhaos.spaceagegame.request.Request;
 import zhaos.spaceagegame.request.RequestConstants;
-import zhaos.spaceagegame.request.helperRequest.SubsectionInfoBase;
-import zhaos.spaceagegame.request.helperRequest.SubsectionInfoRequest;
-import zhaos.spaceagegame.request.helperRequest.UnitAttackRequest;
+import zhaos.spaceagegame.request.helperRequest.SpaceStationInfoRequest;
 import zhaos.spaceagegame.request.helperRequest.UnitInfoRequest;
-import zhaos.spaceagegame.request.helperRequest.UnitMoveRequest;
+import zhaos.spaceagegame.ui.GameUIManager;
 import zhaos.spaceagegame.util.HHexDirection;
 
 /**
  * Created by russel on 12/11/2016.
  */
-class SubsectionInfoWrapper extends LinearLayout {
+public class SubsectionInfoWrapper extends LinearLayout {
     private static final String TAG = "Subsection Text Info";
 
     private GameUIManager parent;
@@ -62,19 +58,22 @@ class SubsectionInfoWrapper extends LinearLayout {
 
         //Unit details
         unitInfoWrapper = new UnitInfoWrapper(context);
+
+        cityInfoWrapper = new CityInfoWrapper(context);
     }
 
     public void setParent(GameUIManager parent) {
         this.parent = parent;
         unitInfoWrapper.setParent(parent);
+        cityInfoWrapper.setParent(parent);
     }
 
     public void setInfo(MyBundle subsectionInfo){
         MyBundle spaceStation =
                 subsectionInfo.getBundle(RequestConstants.SPACE_STATION_INFO);
 
-        if(subsectionInfo
-                .getSubsection(RequestConstants.SUBSECTION)== HHexDirection.CENTER) {
+        if(subsectionInfo.getSubsection(RequestConstants.SUBSECTION)
+                == HHexDirection.CENTER) {
             cityHeader.setVisibility(VISIBLE);
             cityInfo.setVisibility(VISIBLE);
             if (spaceStation == null) {
@@ -95,6 +94,7 @@ class SubsectionInfoWrapper extends LinearLayout {
             cityHeader.setVisibility(GONE);
             cityInfo.setVisibility(GONE);
         }
+        removeView(cityInfoWrapper);
 
         ArrayList<MyBundle> units =
                 subsectionInfo.getArrayList(RequestConstants.UNIT_LIST);
@@ -133,7 +133,7 @@ class SubsectionInfoWrapper extends LinearLayout {
                 unitList.removeView(unitInfoWrapper);
                 unitInfoWrapper.setView(view);
                 unitInfoWrapper.updateInfo(info);
-                unitList.addView(unitInfoWrapper,index);
+                unitList.addView(unitInfoWrapper,index+1);
             }
         });
         request.setUnitID(id);
@@ -141,14 +141,19 @@ class SubsectionInfoWrapper extends LinearLayout {
     }
 
     private void extraCityInfo(int id) {
-        //TODO
+        SpaceStationInfoRequest request =
+                new SpaceStationInfoRequest(new Request.RequestCallback() {
+            @Override
+            public void onComplete(MyBundle info) {
+                removeView(cityInfoWrapper);
+                cityInfoWrapper.updateInfo(info);
+                addView(cityInfoWrapper,2);
+            }
+        });
+        request.setID(id);
+        parent.game.sendRequest(request);
     }
 
 
 
-    private class CityInfoWrapper extends LinearLayout {
-        public CityInfoWrapper(Context context) {
-            super(context);
-        }
-    }
 }
