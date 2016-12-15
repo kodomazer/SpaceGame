@@ -12,6 +12,7 @@ public class UnitMoveRequest extends SubsectionInfoBase{
 
     public UnitMoveRequest(RequestCallback callback) {
         super(callback);
+        id = -1;
     }
 
     public void setId(int id){

@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Random;
 
 import zhaos.spaceagegame.request.MyBundle;
 import zhaos.spaceagegame.request.RequestConstants;
@@ -37,7 +36,7 @@ public class Subsection {
         this.parent = parent;
         position = spot;
         affiliation = -1;
-        influenceLevels = new int[2];
+        influenceLevels = new int[10];
     }
 
     public int getAffiliation(){
@@ -72,51 +71,15 @@ public class Subsection {
 
     public boolean moveOut(Unit e){
         boolean success = occupants.remove(e);
-
         if(occupants.size()==0){
             affiliation = -1;
         }
-
         return success;
     }
 
     private boolean moveOut(ConstructionPod c){
         return pods.remove(c);
     }
-
-
-    //Takes in an array of Entity
-    //returns true if the attack killed the last unit in the subsection
-    //returns false if there are still units in the subsection
-    public boolean attack(Unit[] entities){
-        //TODO Implement battle mechanics
-        //TODO figure out how to pick defenders, automated? or choice
-        if(entities.length<1)return false;
-        Unit attacker = entities[0];
-        if(getUnits().length<1)return true;
-        Unit defender = getUnits()[0];
-        int[] attackDice = new int[2];
-        int[] defenseDice = new int[2];
-        attacker.getDice(attackDice);
-        defender.getDice(defenseDice);
-        int attackSum=0;
-        int defenseSum = 0;
-        for(int i = 0;i<attackDice[0];i++){
-            attackSum+= (int)(Math.random()*attackDice[1])+1;
-        }
-
-        for(int i = 0;i<defenseDice[0];i++){
-            defenseSum+= (int)(Math.random()*defenseDice[1])+1;
-        }
-        if(defenseSum>=attackSum)
-            attacker.damage();
-        if(attackSum>defenseSum)
-            defender.damage();
-
-
-        return false;
-    }
-
 
     //returns neighboring subsections
     public Subsection[] getNeighbors(){
@@ -149,7 +112,7 @@ public class Subsection {
         return parent;
     }
 
-    private Unit[] getUnits() {
+    public Unit[] getUnits() {
         Unit[] units = new Unit[occupants.size()];
         occupants.toArray(units);
         return units;
@@ -208,6 +171,22 @@ public class Subsection {
         return move;
     }
 
+    public Subsection[] getAttacks() {
+        Subsection[] attack = new Subsection[getNeighbors().length];
+        int team = getAffiliation();
+        int i=0;
+        int tile;
+        for (Subsection s : getNeighbors()) {
+            if (s == null) continue;
+            tile = s.getAffiliation();
+            if (tile != team && tile != -1) {
+                attack[i] = s;
+                i++;
+            }
+        }
+        return attack;
+    }
+
     public boolean equals(Point hex, HHexDirection subsection) {
         return hex.equals( getParentPosition()) && subsection.equals(getPosition());
     }
@@ -228,6 +207,7 @@ public class Subsection {
             return;
         influenceLevels[team]=influence;
         for (Subsection s: getNeighbors()) {
+            if(s==null)continue;
             s.updateInfluence(influence-1,team);
         }
     }

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -15,14 +16,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import zhaos.spaceagegame.R;
+import zhaos.spaceagegame.request.MyBundle;
+import zhaos.spaceagegame.request.Request;
+import zhaos.spaceagegame.request.RequestConstants;
+import zhaos.spaceagegame.request.helperRequest.EndTurnRequest;
 import zhaos.spaceagegame.request.helperRequest.HexInfoRequest;
 import zhaos.spaceagegame.request.helperRequest.SubsectionInfoBase;
 import zhaos.spaceagegame.request.helperRequest.SubsectionInfoRequest;
 import zhaos.spaceagegame.spaceGame.LocalGame;
 import zhaos.spaceagegame.spaceGame.map.HexTile;
-import zhaos.spaceagegame.request.MyBundle;
-import zhaos.spaceagegame.request.Request;
-import zhaos.spaceagegame.request.RequestConstants;
 import zhaos.spaceagegame.ui.textInfoView.SubsectionInfoWrapper;
 import zhaos.spaceagegame.util.FloatPoint;
 import zhaos.spaceagegame.util.HHexDirection;
@@ -76,13 +78,13 @@ public class GameUIManager implements Runnable {
 
         //initialize infoText array
         infoText = new TextView[7];
-        infoText[0]=(TextView) parent.findViewById(R.id.Center);
-        infoText[1]=(TextView) parent.findViewById(R.id.Top);
-        infoText[2]=(TextView) parent.findViewById(R.id.TopRight);
-        infoText[3]=(TextView) parent.findViewById(R.id.BottomRight);
-        infoText[4]=(TextView) parent.findViewById(R.id.Bottom);
-        infoText[5]=(TextView) parent.findViewById(R.id.BottomLeft);
-        infoText[6]=(TextView) parent.findViewById(R.id.TopLeft);
+        infoText[6]=(TextView) parent.findViewById(R.id.Center);
+        infoText[0]=(TextView) parent.findViewById(R.id.Top);
+        infoText[1]=(TextView) parent.findViewById(R.id.TopRight);
+        infoText[2]=(TextView) parent.findViewById(R.id.BottomRight);
+        infoText[3]=(TextView) parent.findViewById(R.id.Bottom);
+        infoText[4]=(TextView) parent.findViewById(R.id.BottomLeft);
+        infoText[5]=(TextView) parent.findViewById(R.id.TopLeft);
 
         //initialize text info
         infoFrame = (FrameLayout)parent.findViewById(R.id.InfoView);
@@ -91,6 +93,19 @@ public class GameUIManager implements Runnable {
 
         subsectionInfo.setParent(this);
 
+        Button endTurn = (Button) parent.findViewById(R.id.end_turn);
+        endTurn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EndTurnRequest request = new EndTurnRequest(new Request.RequestCallback(){
+                    @Override
+                    public void onComplete(MyBundle info) {
+                        //possibly put in a request to refresh view in here
+                    }
+                });
+                game.sendRequest(request);
+            }
+        });
 
         selectingSubsection = null;
 
@@ -110,11 +125,12 @@ public class GameUIManager implements Runnable {
         game.setHandler(mainHandler);
         Bundle extras = parent.getIntent().getExtras();
 
-        //Set Game options
-        game.setRadius(extras.getInt("EXTRA_BOARD_SIZE",5));
-        game.setTeamCount(extras.getInt("EXTRA_TEAM_COUNT",3));
-        game.execute();
-
+        if(!game.running()) {
+            //Set Game options
+            game.setRadius(extras.getInt("EXTRA_BOARD_SIZE", 5));
+            game.setTeamCount(extras.getInt("EXTRA_TEAM_COUNT", 3));
+            game.execute();
+        }
         buildGameView();
     }
 

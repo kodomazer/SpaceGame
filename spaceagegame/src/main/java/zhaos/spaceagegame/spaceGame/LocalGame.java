@@ -74,6 +74,10 @@ public class LocalGame extends AsyncTask<Void,Void,Void> {
      */
     private GamePhase gamePhase;
 
+    public boolean running() {
+        return running;
+    }
+
     private enum GamePhase {
         uninitialized,
         start,

@@ -97,6 +97,10 @@ public class EntityHandler {
     public void reset() {
         for (Unit u : units.values()) {
             u.getSubsection().updateInfluence(6, u.getTeam());
+            u.resetPhase();
+        }
+        for(SpaceStation s:spaceStations.values()){
+            s.resetPhase();
         }
     }
 
@@ -143,15 +147,56 @@ public class EntityHandler {
         Point hex = attackRequest.getHex();
         HHexDirection subsection = attackRequest.getSubsection();
 
-        Unit unit = getUnit(bundle.getInt(RequestConstants.UNIT_ID));
+        Unit unit = getUnit(attackRequest.getId());
 
-        for(Subsection sub: unit.getSubsection().getNeighbors()){
+        for(Subsection sub: unit.getSubsection().getAttacks()){
+            Log.i(TAG, "unitAttack: Check Neighbors");
             if(sub.equals(hex,subsection)){
-                sub.attack(new Unit[]{unit});
+                calculateFight(sub,new Unit[]{unit});
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean calculateFight(Subsection sub, Unit[] attackArray) {
+        //TODO Implement battle mechanics
+        //TODO figure out how to pick defenders, automated? or choice
+        if(attackArray.length<1)return false;
+        Unit attacker = attackArray[0];
+        if(sub.getUnits().length<1)return true;
+        Unit defender = sub.getUnits()[0];
+        int[] attackDice = new int[2];
+        int[] defenseDice = new int[2];
+
+        //get Dice is
+        attacker.getDice(attackDice);
+        defender.getDice(defenseDice);
+        int attackSum=0;
+        int defenseSum = 0;
+        for(int i = 0;i<attackDice[0];i++){
+            attackSum+= (int)(Math.random()*attackDice[1])+1;
+        }
+
+        for(int i = 0;i<defenseDice[0];i++){
+            defenseSum+= (int)(Math.random()*defenseDice[1])+1;
+        }
+        Log.i(TAG, "attack: Attacker:"+attackSum+" Defender: " +defenseSum);
+        if(defenseSum>=attackSum){
+            Log.i(TAG, "attack: Attacker Damage");
+            attacker.damage();
+        }
+        if(attackSum>defenseSum) {
+            Log.i(TAG, "attack: Defender Damage");
+            defender.damage();
+        }
+
+        if(defender.getLevel()<=0)
+            sub.moveOut(defender);
+        if(attacker.getLevel()<=0)
+            attacker.getSubsection().moveOut(attacker);
+        attacker.useAction();
+        return true;
     }
 
     private boolean entityInfo(Request action, MyBundle bundle) {

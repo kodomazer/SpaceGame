@@ -85,14 +85,13 @@ public abstract class Entity {
         actionPoints = points;
     }
 
-    protected boolean useAction(){
+    public boolean useAction(){
         if(actionPoints>0) {
             actionPoints--;
             return true;
         }
         return false;
     }
-
 
     public void getInfo(MyBundle bundle){
         //location
@@ -103,9 +102,4 @@ public abstract class Entity {
         bundle.putInt(RequestConstants.FACTION_ID, getTeam());
         bundle.putInt(RequestConstants.UNIT_ID, getID());
     }
-
-
-
-
-
 }

@@ -65,7 +65,7 @@ public class SpaceStation extends Entity{
 
     @Override
     public void getDice(@NonNull int[] dice) {
-        dice[0] = 1*getLevel();
+        dice[0] = getLevel();
         dice[1] = 12;
     }
 

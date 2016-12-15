@@ -22,6 +22,8 @@ public class SpaceGameActivity extends Activity{
     //false if testing new code
     private boolean old = true;
 
+
+
     FloatPoint densityPixel; //each unit is worth one inch on the screen
     GameUIManager gameHandler;
     ZoomControls zoomButtons;

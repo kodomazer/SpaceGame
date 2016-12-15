@@ -10,8 +10,6 @@ import android.widget.LinearLayout;
 import zhaos.spaceagegame.request.MyBundle;
 import zhaos.spaceagegame.request.Request;
 import zhaos.spaceagegame.request.RequestConstants;
-import zhaos.spaceagegame.request.helperRequest.SubsectionInfoBase;
-import zhaos.spaceagegame.request.helperRequest.SubsectionInfoRequest;
 import zhaos.spaceagegame.request.helperRequest.UnitAttackRequest;
 import zhaos.spaceagegame.request.helperRequest.UnitMoveRequest;
 import zhaos.spaceagegame.ui.GameUIManager;
@@ -51,8 +49,7 @@ class UnitInfoWrapper extends LinearLayout {
                 UnitMoveRequest request = new UnitMoveRequest(new Request.RequestCallback() {
                     @Override
                     public void onComplete(MyBundle info) {
-                        //Update Subsection after move
-                        parent.subsectionClicked(hex,subsection);
+                        refreshView();
                     }
                 });
                 request.setId(unitID);
@@ -68,17 +65,10 @@ class UnitInfoWrapper extends LinearLayout {
                 UnitAttackRequest request = new UnitAttackRequest(new Request.RequestCallback(){
                     @Override
                     public void onComplete(MyBundle info) {
-                        SubsectionInfoBase request = new SubsectionInfoRequest(new Request.RequestCallback() {
-                            @Override
-                            public void onComplete(MyBundle info) {
-                                //update subsection after attack
-                                parent.subsectionInfoCallback(info);
-                            }
-                        });
-                        request.setHex(hex);
-                        request.setSubsection(subsection);
+                        refreshView();
                     }
                 });
+                request.setId(unitID);
                 parent.selectingSubsection = request;
             }
         });
@@ -113,7 +103,6 @@ class UnitInfoWrapper extends LinearLayout {
             view.setBackgroundColor(Color.argb(100,100,100,100));
             select.setVisibility(VISIBLE);
             select.setText("Deselect");
-
         }
         else{
             view.setBackgroundColor(Color.argb(0,255,255,255));
@@ -122,6 +111,11 @@ class UnitInfoWrapper extends LinearLayout {
 
         hex = info.getPoint(RequestConstants.HEX);
         subsection = info.getSubsection(RequestConstants.SUBSECTION);
+    }
+
+    private void refreshView(){
+        //Update Subsection after move
+        parent.subsectionClicked(hex,subsection);
     }
 
     void setView(View view){
