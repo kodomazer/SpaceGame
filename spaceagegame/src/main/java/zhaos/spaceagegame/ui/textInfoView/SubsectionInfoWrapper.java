@@ -115,6 +115,7 @@ public class SubsectionInfoWrapper extends LinearLayout {
                     }
                 });
                 unitList.addView(unitText);
+                index++;
             }
         }
         else {
